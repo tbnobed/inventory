@@ -33,7 +33,11 @@ RUN pnpm run typecheck:libs
 # dashboard at the domain root (single-origin deploy behind the reverse proxy).
 # VITE_ORG_NAME is baked into the bundle here; change it in .env and rebuild.
 ARG VITE_ORG_NAME="OBTV Edit Systems"
+ARG VITE_VNC_URL_TEMPLATE="vnc://{ip}"
+ARG VITE_JUMP_URL_TEMPLATE="jump://{ip}"
 RUN PORT=19295 BASE_PATH=/ NODE_ENV=production VITE_ORG_NAME="$VITE_ORG_NAME" \
+    VITE_VNC_URL_TEMPLATE="$VITE_VNC_URL_TEMPLATE" \
+    VITE_JUMP_URL_TEMPLATE="$VITE_JUMP_URL_TEMPLATE" \
     pnpm --filter @workspace/fleet-dashboard run build
 
 # API: esbuild bundles a self-contained ESM file at dist/index.mjs.

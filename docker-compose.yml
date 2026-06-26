@@ -37,6 +37,10 @@ services:
         # Org name shown in the dashboard. Baked in at build time — after
         # changing it in .env, rebuild: docker compose up -d --build
         VITE_ORG_NAME: ${VITE_ORG_NAME:-OBTV Edit Systems}
+        # Remote-connection launch templates for the row right-click menu.
+        # {ip}/{hostname} are substituted. Baked in at build time.
+        VITE_VNC_URL_TEMPLATE: ${VITE_VNC_URL_TEMPLATE:-vnc://{ip}}
+        VITE_JUMP_URL_TEMPLATE: ${VITE_JUMP_URL_TEMPLATE:-jump://{ip}}
     restart: unless-stopped
     depends_on:
       db:

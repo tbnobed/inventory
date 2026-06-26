@@ -1,6 +1,8 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import reportScript from "../assets/Report-FleetInventory.ps1";
 import installScript from "../assets/install-fleet-reporter.bat";
+import vncLaunchScript from "../assets/vnc-launch.ps1";
+import vncHandlerInstall from "../assets/vnc-handler-install.bat";
 
 const router: IRouter = Router();
 
@@ -69,6 +71,26 @@ router.get("/agent/install.bat", (req, res) => {
     "application/octet-stream",
     bat,
   );
+});
+
+// Validating launcher invoked by the vnc:// handler. Downloaded by the
+// installer below; also fetched live by it. Carries no secrets.
+router.get("/agent/vnc-launch.ps1", (_req, res) => {
+  sendDownload(res, "vnc-launch.ps1", "text/plain; charset=utf-8", vncLaunchScript);
+});
+
+// One-time installer that registers the vnc:// scheme to launch TightVNC Viewer
+// (RealVNC registers it natively and won't need this). The dashboard URL is
+// pre-filled from the download origin; no secret is embedded, so it's served to
+// anyone who can reach the dashboard.
+router.get("/agent/vnc-handler.bat", (req, res) => {
+  let bat = vncHandlerInstall;
+  const isBatchSafe = (v: string) => /^[^"%\s<>&|^]+$/.test(v);
+  const origin = requestOrigin(req);
+  if (origin && /^https?:\/\//.test(origin) && isBatchSafe(origin)) {
+    bat = bat.replace(/set "DASHBOARD_URL=.*"/, `set "DASHBOARD_URL=${origin}"`);
+  }
+  sendDownload(res, "vnc-handler-install.bat", "application/octet-stream", bat);
 });
 
 export default router;

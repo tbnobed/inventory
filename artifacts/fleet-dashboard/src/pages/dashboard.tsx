@@ -11,6 +11,7 @@ import type { Machine } from "@workspace/api-client-react";
 import TopBar from "@/components/TopBar";
 import FlagPill, { CleanPill } from "@/components/FlagPill";
 import DetailDrawer from "@/components/DetailDrawer";
+import RowContextMenu from "@/components/RowContextMenu";
 import { relativeTime } from "@/lib/utils";
 import { useLocation } from "wouter";
 
@@ -29,6 +30,7 @@ export default function DashboardPage({ userId: _userId, username, role }: Props
   const [sortKey, setSortKey] = useState<SortKey>("hostname");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [menu, setMenu] = useState<{ x: number; y: number; machine: Machine } | null>(null);
   const [, setLocation] = useLocation();
 
   const listParams = { search: search || undefined, site: siteFilter || undefined, flagged: flaggedOnly || undefined };
@@ -230,6 +232,10 @@ export default function DashboardPage({ userId: _userId, username, role }: Props
                 key={m.machine_id}
                 data-testid={`row-machine-${m.machine_id}`}
                 onClick={() => setSelectedId(m.machine_id)}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  setMenu({ x: e.clientX, y: e.clientY, machine: m });
+                }}
                 className="border-b cursor-pointer transition-colors"
                 style={{ borderColor: "#232c3d" }}
                 onMouseEnter={(e) => (e.currentTarget.style.background = "#161c2a")}
@@ -268,6 +274,17 @@ export default function DashboardPage({ userId: _userId, username, role }: Props
           </tbody>
         </table>
       </div>
+
+      {/* Row right-click menu */}
+      {menu && (
+        <RowContextMenu
+          x={menu.x}
+          y={menu.y}
+          machine={menu.machine}
+          onClose={() => setMenu(null)}
+          onOpenDetails={() => setSelectedId(menu.machine.machine_id)}
+        />
+      )}
 
       {/* Detail drawer */}
       {selectedId && (
