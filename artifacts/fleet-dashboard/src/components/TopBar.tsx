@@ -1,6 +1,7 @@
 import { useLogout, getGetMeQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
+import { ORG_NAME } from "../config";
 
 interface TopBarProps {
   username: string;
@@ -40,7 +41,7 @@ export default function TopBar({ username, role }: TopBarProps) {
           </span>
           <span style={{ color: "#36d0c4" }} className="text-sm font-bold">.</span>
         </div>
-        <span className="label-upper hidden sm:block">OBTV Edit Systems</span>
+        <span className="label-upper hidden sm:block">{ORG_NAME}</span>
       </div>
 
       {/* Right: user info + nav */}

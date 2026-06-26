@@ -31,7 +31,9 @@ RUN pnpm run typecheck:libs
 
 # Frontend: Vite needs PORT + BASE_PATH at build time. BASE_PATH=/ serves the
 # dashboard at the domain root (single-origin deploy behind the reverse proxy).
-RUN PORT=19295 BASE_PATH=/ NODE_ENV=production \
+# VITE_ORG_NAME is baked into the bundle here; change it in .env and rebuild.
+ARG VITE_ORG_NAME="OBTV Edit Systems"
+RUN PORT=19295 BASE_PATH=/ NODE_ENV=production VITE_ORG_NAME="$VITE_ORG_NAME" \
     pnpm --filter @workspace/fleet-dashboard run build
 
 # API: esbuild bundles a self-contained ESM file at dist/index.mjs.

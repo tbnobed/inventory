@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useLogin } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { getGetMeQueryKey } from "@workspace/api-client-react";
+import { ORG_NAME } from "../config";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -51,7 +52,7 @@ export default function LoginPage() {
             className="label-upper mt-1"
             style={{ color: "#7d8aa3" }}
           >
-            OBTV Edit Systems
+            {ORG_NAME}
           </div>
         </div>
 

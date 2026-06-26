@@ -33,6 +33,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        # Org name shown in the dashboard. Baked in at build time — after
+        # changing it in .env, rebuild: docker compose up -d --build
+        VITE_ORG_NAME: ${VITE_ORG_NAME:-OBTV Edit Systems}
     restart: unless-stopped
     depends_on:
       db:
