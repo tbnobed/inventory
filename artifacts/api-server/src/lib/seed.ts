@@ -30,6 +30,13 @@ export async function seedAdminUser() {
 }
 
 export async function seedSampleMachines() {
+  // Demo machines are for the Replit/dev preview only. Self-hosted production
+  // sets SEED_SAMPLE_DATA=false so the fleet starts empty and fills from real
+  // agent reports.
+  if (process.env.SEED_SAMPLE_DATA === "false") {
+    return;
+  }
+
   const count = await db.select().from(machinesTable);
   if (count.length > 0) return; // Already have data
 

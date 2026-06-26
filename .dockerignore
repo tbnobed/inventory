@@ -1,0 +1,31 @@
+# Reinstalled inside the image
+**/node_modules
+
+# Build outputs (regenerated during the image build)
+**/dist
+**/.tsbuildinfo
+**/*.tsbuildinfo
+
+# VCS / Replit / editor noise
+.git
+.gitignore
+.cache
+.local
+.agents
+.replit
+.replitignore
+.replit-artifact
+**/.replit-artifact
+
+# Local env files — secrets are injected at runtime via docker-compose, never baked in
+.env
+.env.*
+!.env.example
+
+# Misc
+attached_assets
+*.log
+npm-debug.log*
+Dockerfile
+.dockerignore
+docker-compose.yml

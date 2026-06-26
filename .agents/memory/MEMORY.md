@@ -2,3 +2,4 @@
 - [customFetch credentials](custom-fetch-credentials.md) — credentials:"include" must be set in lib/api-client-react/src/custom-fetch.ts for session cookies to work in all browser contexts.
 - [AuthGate routing pattern](authgate-routing.md) — drive routing from React Query me query, not imperative navigation; logout via setQueryData(meKey, null) to trigger re-render to login.
 - [Fleet reporter agent distribution](fleet-agent-distribution.md) — agent .ps1/.bat served by the API at /api/agent/* (not frontend public/, to dodge the SPA rewrite); installer stores ingest token as machine env var, not on the task command line.
+- [Self-hosted Docker deployment](self-hosted-docker.md) — one container serves API+SPA (PUBLIC_DIR); api esbuild bundle is self-contained (ship only dist/); never NODE_ENV=production before pnpm install (prunes devDeps).

@@ -12,6 +12,17 @@ A self-hosted hardware fleet inventory dashboard for OBTV Edit Systems — Windo
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
 - Required env: `DATABASE_URL`, `SESSION_SECRET`, `ADMIN_USER`, `ADMIN_PASSWORD`, `INGEST_TOKEN`
 
+## Self-hosted deployment (Docker)
+
+Runs fully independent of Replit. Files: `Dockerfile`, `docker-compose.yml`, `docker/postgres/initdb/01-schema.sql`, `.env.example`, `.dockerignore`.
+
+- **One app container serves both API and SPA.** Express serves `/api/*` and the built React SPA (static + non-`/api` fallback to `index.html`) when `PUBLIC_DIR` is set. A single domain in Nginx Proxy Manager proxies everything; we ship no nginx config of our own.
+- **Deploy:** `cp .env.example .env` (fill secrets), then `docker compose up -d --build`. Point NPM at `http://<host>:${APP_PORT}` (default 8080) with TLS.
+- **DB schema:** created once from `docker/postgres/initdb/*.sql` on a fresh Postgres volume (must include the `session` table — `createTableIfMissing:false`). Keep in sync with `lib/db/src/schema/*.ts`.
+- **Admin:** seeded by the app on first boot from `ADMIN_USER`/`ADMIN_PASSWORD`. `SEED_SAMPLE_DATA=false` keeps the fleet empty (no demo machines).
+- **Env knobs added for self-hosting:** `PUBLIC_DIR` (enable SPA serving), `COOKIE_SAMESITE`/`COOKIE_SECURE` (default `none`/`true` to preserve Replit; Docker sets `lax`/`true`), `ALLOWED_ORIGINS` (extra CORS origins), `SEED_SAMPLE_DATA`.
+- **Build notes:** runtime image ships only the api-server `dist/` (the esbuild bundle is self-contained — no `node_modules`) plus the frontend `dist/public`. Do **not** set `NODE_ENV=production` before `pnpm install` in the build stage — it prunes the devDependencies (vite/esbuild/tsc) the build needs.
+
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9

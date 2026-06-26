@@ -1,0 +1,68 @@
+# ===========================================================================
+# Fleet Inventory Dashboard — self-hosted deployment (Ubuntu 24.04 + Docker).
+#
+#   1. cp .env.example .env   and fill in real secrets
+#   2. docker compose up -d --build
+#   3. Point Nginx Proxy Manager at  http://<this-host>:${APP_PORT}  (default 8080)
+#      with a Proxy Host for your domain + TLS. NPM terminates HTTPS and forwards
+#      X-Forwarded-Proto, which the app trusts (trust proxy = 1).
+#
+# The app container serves BOTH the API (/api/*) and the React dashboard, so a
+# single Proxy Host covers everything. No nginx config of your own is needed.
+# ===========================================================================
+
+services:
+  db:
+    image: postgres:16-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-fleet}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-fleet}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # SQL in here runs once, on first init of an empty data dir.
+      - ./docker/postgres/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-fleet} -d ${POSTGRES_DB:-fleet}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 8080
+      # App connects to the db service over the internal compose network.
+      DATABASE_URL: postgres://${POSTGRES_USER:-fleet}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-fleet}
+      SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET must be set in .env}
+      ADMIN_USER: ${ADMIN_USER:?ADMIN_USER must be set in .env}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD must be set in .env}
+      INGEST_TOKEN: ${INGEST_TOKEN:?INGEST_TOKEN must be set in .env}
+      # Single-origin deploy behind NPM: Lax is more robust than the cross-site
+      # None the Replit iframe needs. Secure stays on (NPM provides HTTPS).
+      COOKIE_SAMESITE: ${COOKIE_SAMESITE:-lax}
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
+      # Start with an empty fleet in production (no demo machines).
+      SEED_SAMPLE_DATA: ${SEED_SAMPLE_DATA:-false}
+      # Only needed if you ever split dashboard/API onto different origins.
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-}
+    ports:
+      # Host port -> app. NPM forwards to this. Defaults to 8080.
+      - "${APP_PORT:-8080}:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://localhost:8080/api/healthz').then(r=>{process.exit(r.ok?0:1)}).catch(()=>process.exit(1))\""]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+volumes:
+  pgdata:
