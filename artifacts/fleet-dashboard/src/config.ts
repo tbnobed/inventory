@@ -18,14 +18,20 @@ export const ORG_NAME =
 // vnc:// to whichever viewer is installed (RealVNC included). We standardise on
 // vnc:// rather than a viewer-specific scheme so one link works for every viewer.
 //
-// Jump Desktop: its scheme is `jump://?host=...&protocol=...`. We use
-// `protocol=fluid` because these machines are managed by Jump Desktop Connect,
-// which connects over Fluid. CRUCIAL: Connect/Fluid computers are matched by
-// their REGISTERED NAME (the machine hostname), NOT by IP — passing an IP just
-// opens the app without connecting. So the default uses `{hostname}`. Without a
-// protocol Jump Desktop defaults to RDP, and `protocol=vnc` is rejected by Jump
-// Desktop Connect ("VNC is not supported — use Fluid"). No port: Fluid resolves
-// the named computer via the account / automatic setup.
+// Jump Desktop: its scheme is `jump://?<params>`. CRUCIAL distinction —
+//   `jump://?host=X`  → a DIRECT, ad-hoc connection to address X. For machines
+//                       managed by Jump Desktop Connect this just opens the app
+//                       and never connects (there is no direct route to set up).
+//   `jump://?name=X`  → selects the SAVED computer whose display name is X and
+//                       connects using that computer's configured protocol
+//                       (Fluid, for Connect machines).
+// These machines are registered in the Jump Desktop account by Connect, so we
+// must address them by their saved NAME, not by host. The saved name matches the
+// workstation hostname here, so the default is `jump://?name={hostname}`. We do
+// NOT pass `protocol=` — the saved computer already knows it is Fluid; forcing a
+// protocol on a named connection can break it. If your Jump Desktop list shows
+// the computer with a suffix (e.g. "PLEX-REMEDIT2 (Fluid)"), override
+// VITE_JUMP_URL_TEMPLATE so `name=` matches that exact display name.
 //
 // VNC is the opposite: a standalone VNC viewer connects to the host's VNC
 // server by IP, so the VNC template uses `{ip}`.
@@ -33,7 +39,7 @@ export const VNC_URL_TEMPLATE =
   import.meta.env.VITE_VNC_URL_TEMPLATE?.trim() || "vnc://{ip}";
 export const JUMP_URL_TEMPLATE =
   import.meta.env.VITE_JUMP_URL_TEMPLATE?.trim() ||
-  "jump://?host={hostname}&protocol=fluid";
+  "jump://?name={hostname}";
 
 // Host-safe characters only: letters, digits, dot, hyphen, underscore, colon
 // (port / IPv6) and square brackets (IPv6 literal). Used to refuse launching a
