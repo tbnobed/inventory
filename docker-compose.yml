@@ -39,8 +39,8 @@ services:
         VITE_ORG_NAME: ${VITE_ORG_NAME:-OBTV Edit Systems}
         # Remote-connection launch templates for the row right-click menu.
         # {ip}/{hostname} are substituted. Baked in at build time.
-        VITE_VNC_URL_TEMPLATE: ${VITE_VNC_URL_TEMPLATE:-vnc://{ip}}
-        VITE_JUMP_URL_TEMPLATE: ${VITE_JUMP_URL_TEMPLATE:-jump://{ip}}
+        VITE_VNC_URL_TEMPLATE: "${VITE_VNC_URL_TEMPLATE:-vnc://{ip}}"
+        VITE_JUMP_URL_TEMPLATE: "${VITE_JUMP_URL_TEMPLATE:-jump://?host={ip}&protocol=vnc&port=5900}"
     restart: unless-stopped
     depends_on:
       db:

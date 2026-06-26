@@ -1,11 +1,13 @@
-# OBTV Fleet Inventory - VNC launcher for TightVNC Viewer.
+# OBTV Fleet Inventory - VNC launcher.
 #
-# Invoked by the vnc:// URL handler (registered by vnc-handler-install.bat).
-# Receives the FULL clicked URL as a single argument (via PowerShell -File, so
-# it is never interpolated into a command line). It strips the scheme, validates
-# the remainder as a bare host[:port], and only then launches the viewer.
-# Anything that is not a plain host/IP is rejected - this is what prevents a
-# malicious vnc://... URL from injecting commands.
+# Invoked by the vnc:// URL handler (registered by vnc-handler-install.bat) on
+# machines whose VNC viewer does NOT register vnc:// itself (TightVNC, UltraVNC,
+# TigerVNC). It receives the FULL clicked URL as a single argument (via
+# PowerShell -File, so it is never interpolated into a command line), strips the
+# scheme, validates the remainder as a bare host[:port], finds whichever VNC
+# viewer is installed, and launches it. Anything that is not a plain host/IP is
+# rejected - that is what prevents a malicious vnc://... URL from injecting
+# commands.
 param([string]$Url)
 
 $ErrorActionPreference = 'Stop'
@@ -19,15 +21,37 @@ if ($target -notmatch '^[A-Za-z0-9._:\[\]-]+$') {
   exit 1
 }
 
-$candidates = @(
-  (Join-Path $env:ProgramFiles 'TightVNC\tvnviewer.exe')
-)
-if (${env:ProgramFiles(x86)}) {
-  $candidates += (Join-Path ${env:ProgramFiles(x86)} 'TightVNC\tvnviewer.exe')
+# Defense-in-depth: a leading hyphen would be parsed as a viewer option, so a
+# host like "-foo" (from untrusted ingest data) must never reach the viewer.
+if ($target.StartsWith('-')) {
+  exit 1
 }
 
-$viewer = $candidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+# Search common install locations for any supported VNC viewer, in both
+# Program Files roots. First one found wins.
+$relPaths = @(
+  'RealVNC\VNC Viewer\vncviewer.exe',
+  'TightVNC\tvnviewer.exe',
+  'uvnc bvba\UltraVNC\vncviewer.exe',
+  'UltraVNC\vncviewer.exe',
+  'TigerVNC\vncviewer.exe'
+)
+$roots = @($env:ProgramFiles, ${env:ProgramFiles(x86)}) | Where-Object { $_ }
+
+$viewer = $null
+foreach ($root in $roots) {
+  foreach ($rel in $relPaths) {
+    $candidate = Join-Path $root $rel
+    if (Test-Path $candidate) { $viewer = $candidate; break }
+  }
+  if ($viewer) { break }
+}
+
 if (-not $viewer) {
+  # Dependency-free notification so the click isn't silently ignored.
+  (New-Object -ComObject WScript.Shell).Popup(
+    "No supported VNC viewer was found on this PC. Install RealVNC, TightVNC, UltraVNC, or TigerVNC, then try again.",
+    0, "OBTV Fleet Inventory", 0) | Out-Null
   exit 1
 }
 

@@ -191,7 +191,7 @@ export default function RowContextMenu({
         <MenuItem
           label="Set up vnc:// handler\u2026"
           muted
-          title="Download the one-time installer (run as admin) that registers vnc:// for TightVNC Viewer"
+          title="One-time installer (run as admin). Only needed for TightVNC / UltraVNC / TigerVNC — RealVNC registers vnc:// itself."
           onClick={setupVncHandler}
         />
       </div>

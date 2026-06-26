@@ -2,16 +2,19 @@
 setlocal
 
 REM ============================================================
-REM  OBTV Fleet Inventory - VNC handler installer (TightVNC)
+REM  OBTV Fleet Inventory - VNC handler installer
 REM
 REM  Registers the vnc:// URL scheme on this workstation so the
-REM  dashboard's "Connect via VNC" opens TightVNC Viewer.
+REM  dashboard's "Connect via VNC" opens your VNC viewer. Only needed
+REM  for viewers that do NOT register vnc:// themselves (TightVNC,
+REM  UltraVNC, TigerVNC). RealVNC Viewer registers it on install.
 REM
-REM  It downloads a small validating launcher (vnc-launch.ps1) and
-REM  points the handler at it via PowerShell -File, so the clicked
-REM  URL is passed as a plain argument - never interpolated into a
-REM  command line. The launcher rejects anything that is not a bare
-REM  host/IP, so a malicious vnc://... link cannot run commands.
+REM  It downloads a small validating launcher (vnc-launch.ps1) that
+REM  finds whichever supported viewer is installed, and points the
+REM  handler at it via PowerShell -File, so the clicked URL is passed
+REM  as a plain argument - never interpolated into a command line. The
+REM  launcher rejects anything that is not a bare host/IP, so a
+REM  malicious vnc://... link cannot run commands.
 REM
 REM  Right-click this file and choose "Run as administrator".
 REM  Optional: pass the dashboard URL as the first argument:
@@ -74,9 +77,9 @@ if %errorlevel% neq 0 (
 
 echo.
 echo === Done ===
-echo vnc:// links now open TightVNC Viewer via:
+echo vnc:// links now open your installed VNC viewer via:
 echo   %LAUNCHER%
-echo (If TightVNC is installed in a non-standard location, edit that file.)
+echo (If your viewer is installed in a non-standard location, edit that file.)
 echo.
 pause
 endlocal

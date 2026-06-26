@@ -9,13 +9,19 @@ export const ORG_NAME =
 // These trigger an OS protocol handler (the browser hands off to the installed
 // desktop app). Override at build time with the matching env var and rebuild.
 //
-// NOTE: TightVNC does not register the vnc:// scheme by default — run the
-// one-time installer from /api/agent/vnc-handler.bat (as admin) on each
-// workstation so vnc:// links open TightVNC Viewer. RealVNC registers it itself.
+// VNC: `vnc://{ip}` is the IANA-standard scheme (RFC 7869). RealVNC Viewer
+// registers it automatically on install; TightVNC / UltraVNC / TigerVNC do NOT —
+// on those machines run the one-time installer from /api/agent/vnc-handler.bat
+// (as admin), which registers vnc:// to whichever viewer is installed.
+//
+// Jump Desktop: its scheme is `jump://?host=...&protocol=...&port=...`. We force
+// `protocol=vnc&port=5900` because the hosts run a VNC server — without an
+// explicit protocol Jump Desktop defaults to RDP.
 export const VNC_URL_TEMPLATE =
   import.meta.env.VITE_VNC_URL_TEMPLATE?.trim() || "vnc://{ip}";
 export const JUMP_URL_TEMPLATE =
-  import.meta.env.VITE_JUMP_URL_TEMPLATE?.trim() || "jump://{ip}";
+  import.meta.env.VITE_JUMP_URL_TEMPLATE?.trim() ||
+  "jump://?host={ip}&protocol=vnc&port=5900";
 
 // Host-safe characters only: letters, digits, dot, hyphen, underscore, colon
 // (port / IPv6) and square brackets (IPv6 literal). Used to refuse launching a
