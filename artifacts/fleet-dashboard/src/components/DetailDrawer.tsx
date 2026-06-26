@@ -3,7 +3,11 @@ import {
   useGetMachine,
   useDeleteMachine,
   useUpdateMachineSite,
+  useListSites,
+  useListSubnets,
   getListMachinesQueryKey,
+  getListSitesQueryKey,
+  getListSubnetsQueryKey,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import FlagPill, { CleanPill } from "./FlagPill";
@@ -53,8 +57,24 @@ export default function DetailDrawer({ machineId, onClose, isAdmin }: Props) {
   const deleteMachine = useDeleteMachine();
   const updateSite = useUpdateMachineSite();
 
+  const { data: sites = [] } = useListSites({ query: { queryKey: getListSitesQueryKey() } });
+  const { data: subnets = [] } = useListSubnets({ query: { queryKey: getListSubnetsQueryKey() } });
+
   const [editingSite, setEditingSite] = useState(false);
   const [siteValue, setSiteValue] = useState("");
+
+  // Sites available in the dropdown: those defined in Site Mapping rules plus
+  // any already assigned to machines (and the machine's current site, so it
+  // always shows even if it predates the current rules).
+  const siteOptions = Array.from(
+    new Set([
+      ...sites,
+      ...subnets.map((s) => s.site),
+      ...(machine?.site ? [machine.site] : []),
+    ])
+  )
+    .filter(Boolean)
+    .sort((a, b) => a.localeCompare(b));
 
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
@@ -173,19 +193,19 @@ export default function DetailDrawer({ machineId, onClose, isAdmin }: Props) {
               <span className="label-upper shrink-0 w-36">Site</span>
               {editingSite ? (
                 <div className="flex-1 flex gap-1.5 items-center">
-                  <input
+                  <select
                     data-testid="input-edit-site"
                     autoFocus
                     value={siteValue}
                     onChange={(e) => setSiteValue(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") handleSaveSite();
-                      if (e.key === "Escape") { e.stopPropagation(); setEditingSite(false); }
-                    }}
-                    placeholder="Unassigned"
                     className="flex-1 min-w-0 px-2 py-1 text-xs rounded border outline-none"
-                    style={{ background: "transparent", borderColor: "#36d0c4", color: "#d6deec", fontFamily: "inherit" }}
-                  />
+                    style={{ background: "#121722", borderColor: "#36d0c4", color: siteValue ? "#d6deec" : "#7d8aa3", fontFamily: "inherit" }}
+                  >
+                    <option value="">Unassigned</option>
+                    {siteOptions.map((s) => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
                   <button
                     data-testid="button-save-site"
                     onClick={handleSaveSite}
