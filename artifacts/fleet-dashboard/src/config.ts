@@ -9,10 +9,14 @@ export const ORG_NAME =
 // These trigger an OS protocol handler (the browser hands off to the installed
 // desktop app). Override at build time with the matching env var and rebuild.
 //
-// VNC: `vnc://{ip}` is the IANA-standard scheme (RFC 7869). RealVNC Viewer
-// registers it automatically on install; TightVNC / UltraVNC / TigerVNC do NOT —
-// on those machines run the one-time installer from /api/agent/vnc-handler.bat
-// (as admin), which registers vnc:// to whichever viewer is installed.
+// VNC: `vnc://{ip}` is the IANA-standard scheme (RFC 7869), but on WINDOWS no
+// common viewer registers it for browser links by default — TightVNC/UltraVNC/
+// TigerVNC register nothing, and RealVNC registers its own
+// `com.realvnc.vncviewer.connect://` scheme plus the `.vnc` file type, NOT
+// `vnc://`. So a `vnc://` click does nothing until the one-time installer from
+// /api/agent/vnc-handler.bat is run (as admin) on the workstation; it maps
+// vnc:// to whichever viewer is installed (RealVNC included). We standardise on
+// vnc:// rather than a viewer-specific scheme so one link works for every viewer.
 //
 // Jump Desktop: its scheme is `jump://?host=...&protocol=...&port=...`. We force
 // `protocol=vnc&port=5900` because the hosts run a VNC server — without an

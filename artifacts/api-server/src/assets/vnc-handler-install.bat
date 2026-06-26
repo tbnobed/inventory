@@ -5,9 +5,10 @@ REM ============================================================
 REM  OBTV Fleet Inventory - VNC handler installer
 REM
 REM  Registers the vnc:// URL scheme on this workstation so the
-REM  dashboard's "Connect via VNC" opens your VNC viewer. Only needed
-REM  for viewers that do NOT register vnc:// themselves (TightVNC,
-REM  UltraVNC, TigerVNC). RealVNC Viewer registers it on install.
+REM  dashboard's "Connect via VNC" opens your VNC viewer. On Windows
+REM  no common viewer registers vnc:// for browser links by default
+REM  (RealVNC uses its own scheme + the .vnc file type, not vnc://),
+REM  so this is needed once per PC regardless of which viewer you use.
 REM
 REM  It downloads a small validating launcher (vnc-launch.ps1) that
 REM  finds whichever supported viewer is installed, and points the

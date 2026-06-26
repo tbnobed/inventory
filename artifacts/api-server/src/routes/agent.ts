@@ -79,10 +79,11 @@ router.get("/agent/vnc-launch.ps1", (_req, res) => {
   sendDownload(res, "vnc-launch.ps1", "text/plain; charset=utf-8", vncLaunchScript);
 });
 
-// One-time installer that registers the vnc:// scheme for viewers that don't do
-// it themselves (TightVNC/UltraVNC/TigerVNC; RealVNC registers it natively). The
-// dashboard URL is pre-filled from the download origin; no secret is embedded,
-// so it's served to anyone who can reach the dashboard.
+// One-time installer that registers the vnc:// scheme. Required on Windows for
+// every viewer (TightVNC/UltraVNC/TigerVNC register nothing; RealVNC registers
+// its own com.realvnc.vncviewer.connect:// scheme, not vnc://). The dashboard
+// URL is pre-filled from the download origin; no secret is embedded, so it's
+// served to anyone who can reach the dashboard.
 router.get("/agent/vnc-handler.bat", (req, res) => {
   let bat = vncHandlerInstall;
   const isBatchSafe = (v: string) => /^[^"%\s<>&|^]+$/.test(v);

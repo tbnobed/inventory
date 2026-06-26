@@ -1,8 +1,10 @@
 # OBTV Fleet Inventory - VNC launcher.
 #
-# Invoked by the vnc:// URL handler (registered by vnc-handler-install.bat) on
-# machines whose VNC viewer does NOT register vnc:// itself (TightVNC, UltraVNC,
-# TigerVNC). It receives the FULL clicked URL as a single argument (via
+# Invoked by the vnc:// URL handler (registered by vnc-handler-install.bat).
+# On Windows no common viewer registers vnc:// for browser links by default
+# (TightVNC/UltraVNC/TigerVNC register nothing; RealVNC uses its own scheme),
+# so this launcher is what makes a vnc:// click open the installed viewer.
+# It receives the FULL clicked URL as a single argument (via
 # PowerShell -File, so it is never interpolated into a command line), strips the
 # scheme, validates the remainder as a bare host[:port], finds whichever VNC
 # viewer is installed, and launches it. Anything that is not a plain host/IP is

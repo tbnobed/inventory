@@ -191,7 +191,7 @@ export default function RowContextMenu({
         <MenuItem
           label="Set up vnc:// handler\u2026"
           muted
-          title="One-time installer (run as admin). Only needed for TightVNC / UltraVNC / TigerVNC — RealVNC registers vnc:// itself."
+          title="Required once per PC (run as admin). Windows VNC viewers — RealVNC included — don't register vnc:// for browser links by default; this maps it to your installed viewer."
           onClick={setupVncHandler}
         />
       </div>
