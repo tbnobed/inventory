@@ -41,6 +41,26 @@ export default function LoginPage() {
       >
         {/* Logo */}
         <div className="mb-8 text-center">
+          <svg
+            width="48"
+            height="48"
+            viewBox="0 0 256 256"
+            xmlns="http://www.w3.org/2000/svg"
+            role="img"
+            aria-label="Fleet Inventory"
+            className="mx-auto mb-3"
+          >
+            <title>Fleet Inventory</title>
+            <rect x="0" y="0" width="256" height="256" rx="44" fill="#0b0e14" stroke="#232c3d" strokeWidth="2" />
+            <rect x="60" y="62" width="116" height="22" rx="6" fill="#1c6f69" />
+            <circle cx="160" cy="73" r="7" fill="#36d0c4" />
+            <rect x="60" y="96" width="116" height="22" rx="6" fill="#1c6f69" />
+            <circle cx="160" cy="107" r="7" fill="#36d0c4" />
+            <rect x="60" y="130" width="116" height="22" rx="6" fill="#36d0c4" />
+            <circle cx="160" cy="141" r="7" fill="#0b0e14" />
+            <rect x="60" y="164" width="116" height="22" rx="6" fill="#1c6f69" />
+            <circle cx="160" cy="175" r="7" fill="#36d0c4" />
+          </svg>
           <div
             className="text-xl font-semibold tracking-tight"
             style={{ color: "#d6deec" }}
