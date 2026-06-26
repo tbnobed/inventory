@@ -3,10 +3,8 @@ import {
   useGetMachine,
   useDeleteMachine,
   useUpdateMachineSite,
-  useListSites,
   useListSubnets,
   getListMachinesQueryKey,
-  getListSitesQueryKey,
   getListSubnetsQueryKey,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -57,18 +55,16 @@ export default function DetailDrawer({ machineId, onClose, isAdmin }: Props) {
   const deleteMachine = useDeleteMachine();
   const updateSite = useUpdateMachineSite();
 
-  const { data: sites = [] } = useListSites({ query: { queryKey: getListSitesQueryKey() } });
   const { data: subnets = [] } = useListSubnets({ query: { queryKey: getListSubnetsQueryKey() } });
 
   const [editingSite, setEditingSite] = useState(false);
   const [siteValue, setSiteValue] = useState("");
 
-  // Sites available in the dropdown: those defined in Site Mapping rules plus
-  // any already assigned to machines (and the machine's current site, so it
-  // always shows even if it predates the current rules).
+  // Site Mapping is the single source of truth: the dropdown only lists sites
+  // defined in subnet rules. The machine's current site is also included so a
+  // legacy value still shows as selected even if no rule defines it (anymore).
   const siteOptions = Array.from(
     new Set([
-      ...sites,
       ...subnets.map((s) => s.site),
       ...(machine?.site ? [machine.site] : []),
     ])
