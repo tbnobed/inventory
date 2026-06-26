@@ -1,44 +1,70 @@
-# [Project name]
+# Fleet Inventory Dashboard
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A self-hosted hardware fleet inventory dashboard for OBTV Edit Systems — Windows workstations push hardware specs via REST API; IT staff view, filter, and flag machines in a dark ops-console web dashboard.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `pnpm --filter @workspace/api-server run dev` — run the API server (port 8080)
+- `pnpm --filter @workspace/fleet-dashboard run dev` — run the frontend (port 19295, preview at `/`)
 - `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
+- `pnpm run typecheck:libs` — rebuild shared libs (run after editing `lib/*`)
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- Required env: `DATABASE_URL`, `SESSION_SECRET`, `ADMIN_USER`, `ADMIN_PASSWORD`, `INGEST_TOKEN`
 
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
-- DB: PostgreSQL + Drizzle ORM
+- API: Express 5 + express-session + connect-pg-simple + bcryptjs
+- DB: PostgreSQL + Drizzle ORM (tables: `machines`, `users`, `session`)
 - Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
+- API codegen: Orval (from OpenAPI spec at `lib/api-spec/`)
+- Frontend: React + Vite + Tailwind v4 + wouter routing + @tanstack/react-query
+- Build: esbuild (ESM bundle)
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `lib/api-spec/` — OpenAPI spec (source of truth for all routes)
+- `lib/api-client-react/src/generated/` — generated React Query hooks + Zod schemas
+- `lib/db/src/schema.ts` — Drizzle ORM schema (machines, users tables)
+- `artifacts/api-server/src/` — Express API server
+  - `src/routes/` — route handlers
+  - `src/lib/flags.ts` — upgrade flag logic (DDR3=danger, Win10=danger, etc.)
+  - `src/lib/session.ts` — express-session config
+  - `src/lib/seed.ts` — admin user + 5 sample machines seeded on first boot
+- `artifacts/fleet-dashboard/src/` — React frontend
+  - `src/pages/login.tsx` — login page
+  - `src/pages/dashboard.tsx` — main fleet table (search, filter, sort, CSV export)
+  - `src/pages/users.tsx` — admin user management
+  - `src/components/TopBar.tsx` — site header with nav and logout
+  - `src/components/DetailDrawer.tsx` — slide-in machine detail panel
+  - `src/index.css` — NOC palette theme (JetBrains Mono, bg #0b0e14, teal #36d0c4)
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- **Session cookies**: `SameSite=None; Secure` required — app runs behind Replit's HTTPS proxy; `trust proxy: 1` set on Express so cookies work correctly.
+- **`createTableIfMissing: false`**: `connect-pg-simple` cannot find `table.sql` when bundled by esbuild. Session table is pre-created via migration instead.
+- **customFetch credentials**: `credentials: "include"` is set in `lib/api-client-react/src/custom-fetch.ts` so session cookies are sent on all API requests.
+- **Auth routing**: `AuthGate` in `App.tsx` drives routing based on React Query's `/api/me` result — no imperative navigation; logout sets `me` to `null` directly via `setQueryData`.
+- **Ingest endpoint**: `POST /api/report` uses `Authorization: Bearer <INGEST_TOKEN>` (not session) so Windows scripts can push specs without a UI login.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
-
-## User preferences
-
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- **Login**: session-cookie auth; admin and viewer roles
+- **Dashboard**: sortable table of all fleet machines, search by hostname/IP/CPU/GPU/OS, filter by site or flagged status, 30s auto-refresh, stat strip (total/flagged/danger/warn/sites)
+- **Detail drawer**: click any row to see full hardware specs (CPU, RAM modules, disks, volumes, NICs, GPU drivers, BIOS)
+- **Flags**: automatic upgrade flags — DDR3=danger, DDR4=warn, <64GB RAM=warn, non-RTX40/50/60/PRO/A GPU=warn, Win10=danger, stale >14d=danger
+- **Export**: CSV download of entire fleet via `/api/export.csv`
+- **User management**: admin-only — add/delete users, reset passwords
+- **Ingest**: `POST /api/report` with bearer token for Windows PowerShell reporters
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- **Always run `pnpm run typecheck:libs` after editing anything in `lib/*`** before checking leaf artifacts — stale `.d.ts` files will cause false TS errors.
+- The `session` table must exist in PostgreSQL before starting the API server (already created in dev DB). Run the SQL in `connect-pg-simple`'s `table.sql` against any new DB.
+- esbuild bundles `api-server` to ESM (`dist/index.mjs`) with a CJS compatibility banner — do not switch to CJS output.
+- `req.params` in Express 5 can return `string | string[]`; always normalize with `Array.isArray` before using in Drizzle `eq()`.
+- Zod schema names generated by Orval: `ReportMachineBody`, `LoginBody`, `CreateUserBody`, `UpdateUserPasswordBody` (not `UserInput`).
 
 ## Pointers
 
