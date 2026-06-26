@@ -213,10 +213,10 @@ export default function DetailDrawer({ machineId, onClose, isAdmin }: Props) {
                     <button
                       data-testid="button-edit-site"
                       onClick={() => { setSiteValue(machine.site ?? ""); setEditingSite(true); }}
-                      className="label-upper transition-colors"
-                      style={{ color: "#7d8aa3" }}
-                      onMouseEnter={(e) => (e.currentTarget.style.color = "#36d0c4")}
-                      onMouseLeave={(e) => (e.currentTarget.style.color = "#7d8aa3")}
+                      className="text-xs px-2 py-0.5 rounded border shrink-0 transition-colors"
+                      style={{ borderColor: "#2a3754", color: "#36d0c4" }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(54,208,196,0.1)"; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
                     >
                       Edit
                     </button>
