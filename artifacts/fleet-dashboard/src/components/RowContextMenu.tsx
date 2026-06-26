@@ -163,7 +163,7 @@ export default function RowContextMenu({
           onClick={() => launch(vncUrl)}
         />
         <MenuItem
-          label="Connect via Jump Desktop"
+          label="Connect via Jump Desktop (Fluid)"
           accent
           disabled={!jumpUrl}
           title={

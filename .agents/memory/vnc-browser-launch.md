@@ -16,4 +16,6 @@ A browser can only hand a `vnc://` link to a desktop app if a `vnc://` **URL pro
 
 **Why not a viewer-specific scheme:** staff use assorted viewers; picking `com.realvnc.vncviewer.connect://` would break everyone not on RealVNC. One standard scheme + a universal mapper is the only consistent option.
 
-**Jump Desktop** is separate: its scheme is `jump://?host=...&protocol=...&port=...`; with no `protocol` it defaults to **RDP**. Force `protocol=vnc&port=5900` since the hosts run a VNC server.
+**Jump Desktop** is separate: its scheme is `jump://?host=...&protocol=...`. With no `protocol` it defaults to **RDP**. This shop's machines are managed by **Jump Desktop Connect, which connects over Fluid**, so use `protocol=fluid` (no port — Fluid negotiates its own; direct on 35384+, else relay). `protocol=vnc` is rejected by Jump Desktop Connect with "VNC is not supported — use Fluid". Standard cloud Fluid doesn't accept a raw IP, but Jump Desktop Connect's direct/cloudless mode does (their sessions already show "Connection: Direct, Fluid 2.0"). Do NOT assume Jump Desktop == VNC: it is its own protocol stack.
+
+**Installer filename gotcha:** a `.bat` double-clicked under a name with a space (e.g. `vnc-handler (2).bat` from a re-download) passes the post-space token as `%1`. Any unconditional `set VAR=%~1` override then gets clobbered (DASHBOARD_URL became `(2).bat`). Guard arg overrides to accept only values that start with `http`.

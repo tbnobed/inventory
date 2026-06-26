@@ -18,14 +18,16 @@ export const ORG_NAME =
 // vnc:// to whichever viewer is installed (RealVNC included). We standardise on
 // vnc:// rather than a viewer-specific scheme so one link works for every viewer.
 //
-// Jump Desktop: its scheme is `jump://?host=...&protocol=...&port=...`. We force
-// `protocol=vnc&port=5900` because the hosts run a VNC server — without an
-// explicit protocol Jump Desktop defaults to RDP.
+// Jump Desktop: its scheme is `jump://?host=...&protocol=...`. We use
+// `protocol=fluid` because these machines are managed by Jump Desktop Connect,
+// which connects over Fluid. Without a protocol Jump Desktop defaults to RDP,
+// and `protocol=vnc` is rejected by Jump Desktop Connect ("VNC is not supported
+// — use Fluid"). No port: Fluid negotiates its own (direct on 35384+, else relay).
 export const VNC_URL_TEMPLATE =
   import.meta.env.VITE_VNC_URL_TEMPLATE?.trim() || "vnc://{ip}";
 export const JUMP_URL_TEMPLATE =
   import.meta.env.VITE_JUMP_URL_TEMPLATE?.trim() ||
-  "jump://?host={ip}&protocol=vnc&port=5900";
+  "jump://?host={ip}&protocol=fluid";
 
 // Host-safe characters only: letters, digits, dot, hyphen, underscore, colon
 // (port / IPv6) and square brackets (IPv6 literal). Used to refuse launching a

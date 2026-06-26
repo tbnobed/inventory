@@ -25,7 +25,11 @@ REM ============================================================
 set "DASHBOARD_URL=https://YOUR-DASHBOARD-URL"
 
 REM ------- optional command-line override -------
-if not "%~1"=="" set "DASHBOARD_URL=%~1"
+REM Only accept an http(s) URL. This guards against Windows passing a stray
+REM token as %1 when the .bat is double-clicked under a name containing a space
+REM (e.g. "vnc-handler (2).bat" would otherwise set DASHBOARD_URL to "(2).bat").
+set "ARG1=%~1"
+if defined ARG1 if /i "%ARG1:~0,4%"=="http" set "DASHBOARD_URL=%ARG1%"
 
 REM strip a trailing slash from the URL if present
 if "%DASHBOARD_URL:~-1%"=="/" set "DASHBOARD_URL=%DASHBOARD_URL:~0,-1%"
