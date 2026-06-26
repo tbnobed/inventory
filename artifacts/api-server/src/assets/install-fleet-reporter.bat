@@ -28,7 +28,7 @@ if "%DASHBOARD_URL:~-1%"=="/" set "DASHBOARD_URL=%DASHBOARD_URL:~0,-1%"
 
 set "INSTALL_DIR=C:\OBTV"
 set "SCRIPT_PATH=%INSTALL_DIR%\Report-FleetInventory.ps1"
-set "SCRIPT_URL=%DASHBOARD_URL%/Report-FleetInventory.ps1"
+set "SCRIPT_URL=%DASHBOARD_URL%/api/agent/report.ps1"
 set "TASK_NAME=OBTV Fleet Inventory"
 
 echo.

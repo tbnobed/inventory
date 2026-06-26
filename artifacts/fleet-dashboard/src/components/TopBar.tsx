@@ -47,6 +47,17 @@ export default function TopBar({ username, role }: TopBarProps) {
       <div className="flex items-center gap-3">
         {role === "admin" && (
           <>
+            <a
+              data-testid="link-agent"
+              href={`${import.meta.env.BASE_URL}api/agent/install.bat`}
+              download="install-fleet-reporter.bat"
+              className="label-upper transition-colors"
+              style={{ color: "#7d8aa3" }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "#36d0c4")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "#7d8aa3")}
+            >
+              Agent Installer
+            </a>
             <button
               data-testid="link-subnets"
               onClick={() => setLocation("/subnets")}
