@@ -88,6 +88,35 @@ paths:
           description: Unauthorized
         "404":
           description: Not found
+    patch:
+      operationId: updateMachineSite
+      tags: [machines]
+      summary: Update a machine's site (admin)
+      parameters:
+        - name: machine_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMachineSiteInput"
+      responses:
+        "200":
+          description: Updated machine
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Machine"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
     delete:
       operationId: deleteMachine
       tags: [machines]
@@ -163,6 +192,67 @@ paths:
                   type: string
         "401":
           description: Unauthorized
+
+  /subnets:
+    get:
+      operationId: listSubnets
+      tags: [subnets]
+      summary: List subnet-to-site mapping rules
+      responses:
+        "200":
+          description: List of subnet rules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SubnetRule"
+        "401":
+          description: Unauthorized
+    post:
+      operationId: createSubnet
+      tags: [subnets]
+      summary: Create a subnet-to-site mapping rule (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubnetRuleInput"
+      responses:
+        "200":
+          description: Created subnet rule
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubnetRule"
+        "400":
+          description: Invalid CIDR
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+
+  /subnets/{id}:
+    delete:
+      operationId: deleteSubnet
+      tags: [subnets]
+      summary: Delete a subnet-to-site mapping rule (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
 
   /login:
     post:
@@ -457,4 +547,35 @@ components:
       required: [password]
       properties:
         password:
+          type: string
+
+    UpdateMachineSiteInput:
+      type: object
+      required: [site]
+      properties:
+        site:
+          type: ["string", "null"]
+
+    SubnetRule:
+      type: object
+      required: [id, cidr, site, created_at]
+      properties:
+        id:
+          type: integer
+        cidr:
+          type: string
+        site:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    SubnetRuleInput:
+      type: object
+      required: [cidr, site]
+      properties:
+        cidr:
+          type: string
+          description: IPv4 CIDR, e.g. 10.1.0.0/16
+        site:
           type: string

@@ -77,6 +77,38 @@ export const GetMachineResponse = zod.object({
 
 
 /**
+ * @summary Update a machine's site (admin)
+ */
+export const UpdateMachineSiteParams = zod.object({
+  "machine_id": zod.coerce.string()
+})
+
+export const UpdateMachineSiteBody = zod.object({
+  "site": zod.string().nullable()
+})
+
+export const UpdateMachineSiteResponse = zod.object({
+  "machine_id": zod.string(),
+  "hostname": zod.string(),
+  "site": zod.string().nullish(),
+  "last_seen": zod.coerce.date(),
+  "manufacturer": zod.string().nullish(),
+  "model": zod.string().nullish(),
+  "cpu": zod.string().nullish(),
+  "total_ram_gb": zod.number().nullish(),
+  "ram_type": zod.string().nullish(),
+  "gpu1_model": zod.string().nullish(),
+  "os": zod.string().nullish(),
+  "primary_ip": zod.string().nullish(),
+  "data": zod.record(zod.string(), zod.unknown()).nullish(),
+  "flags": zod.array(zod.object({
+  "label": zod.string(),
+  "severity": zod.enum(['danger', 'warn', 'ok'])
+}))
+})
+
+
+/**
  * @summary Delete a machine
  */
 export const DeleteMachineParams = zod.object({
@@ -143,6 +175,44 @@ export const GetStatsResponse = zod.object({
  */
 export const ListSitesResponseItem = zod.string()
 export const ListSitesResponse = zod.array(ListSitesResponseItem)
+
+
+/**
+ * @summary List subnet-to-site mapping rules
+ */
+export const ListSubnetsResponseItem = zod.object({
+  "id": zod.number(),
+  "cidr": zod.string(),
+  "site": zod.string(),
+  "created_at": zod.coerce.date()
+})
+export const ListSubnetsResponse = zod.array(ListSubnetsResponseItem)
+
+
+/**
+ * @summary Create a subnet-to-site mapping rule (admin)
+ */
+export const CreateSubnetBody = zod.object({
+  "cidr": zod.string().describe('IPv4 CIDR, e.g. 10.1.0.0\/16'),
+  "site": zod.string()
+})
+
+export const CreateSubnetResponse = zod.object({
+  "id": zod.number(),
+  "cidr": zod.string(),
+  "site": zod.string(),
+  "created_at": zod.coerce.date()
+})
+
+
+/**
+ * @summary Delete a subnet-to-site mapping rule (admin)
+ */
+export const DeleteSubnetParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteSubnetResponse = zod.void()
 
 
 /**

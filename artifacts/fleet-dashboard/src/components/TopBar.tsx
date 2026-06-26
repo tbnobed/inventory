@@ -1,14 +1,15 @@
 import { useLogout, getGetMeQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 
 interface TopBarProps {
   username: string;
   role: string;
-  onUsersClick?: () => void;
 }
 
-export default function TopBar({ username, role, onUsersClick }: TopBarProps) {
+export default function TopBar({ username, role }: TopBarProps) {
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
   const logout = useLogout();
 
   function handleLogout() {
@@ -45,16 +46,28 @@ export default function TopBar({ username, role, onUsersClick }: TopBarProps) {
       {/* Right: user info + nav */}
       <div className="flex items-center gap-3">
         {role === "admin" && (
-          <button
-            data-testid="link-users"
-            onClick={onUsersClick}
-            className="label-upper transition-colors"
-            style={{ color: "#7d8aa3" }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "#36d0c4")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "#7d8aa3")}
-          >
-            Users
-          </button>
+          <>
+            <button
+              data-testid="link-subnets"
+              onClick={() => setLocation("/subnets")}
+              className="label-upper transition-colors"
+              style={{ color: "#7d8aa3" }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "#36d0c4")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "#7d8aa3")}
+            >
+              Site Mapping
+            </button>
+            <button
+              data-testid="link-users"
+              onClick={() => setLocation("/users")}
+              className="label-upper transition-colors"
+              style={{ color: "#7d8aa3" }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "#36d0c4")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "#7d8aa3")}
+            >
+              Users
+            </button>
+          </>
         )}
         <span
           className="text-xs"

@@ -27,6 +27,9 @@ import type {
   Machine,
   MachineReport,
   PasswordReset,
+  SubnetRule,
+  SubnetRuleInput,
+  UpdateMachineSiteInput,
   User,
   UserInput,
   UserSession
@@ -297,6 +300,77 @@ export function useGetMachine<TData = Awaited<ReturnType<typeof getMachine>>, TE
 
 
 
+
+export const getUpdateMachineSiteUrl = (machineId: string,) => {
+
+
+
+
+  return `/api/machines/${machineId}`
+}
+
+/**
+ * @summary Update a machine's site (admin)
+ */
+export const updateMachineSite = async (machineId: string,
+    updateMachineSiteInput: UpdateMachineSiteInput, options?: RequestInit): Promise<Machine> => {
+
+  return customFetch<Machine>(getUpdateMachineSiteUrl(machineId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(updateMachineSiteInput)
+  }
+);}
+
+
+
+
+export const getUpdateMachineSiteMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMachineSite>>, TError,{machineId: string;data: BodyType<UpdateMachineSiteInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateMachineSite>>, TError,{machineId: string;data: BodyType<UpdateMachineSiteInput>}, TContext> => {
+
+const mutationKey = ['updateMachineSite'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateMachineSite>>, {machineId: string;data: BodyType<UpdateMachineSiteInput>}> = (props) => {
+          const {machineId,data} = props ?? {};
+
+          return  updateMachineSite(machineId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateMachineSiteMutationResult = NonNullable<Awaited<ReturnType<typeof updateMachineSite>>>
+    export type UpdateMachineSiteMutationBody = BodyType<UpdateMachineSiteInput>
+    export type UpdateMachineSiteMutationError = ErrorType<void>
+
+    /**
+ * @summary Update a machine's site (admin)
+ */
+export const useUpdateMachineSite = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMachineSite>>, TError,{machineId: string;data: BodyType<UpdateMachineSiteInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateMachineSite>>,
+        TError,
+        {machineId: string;data: BodyType<UpdateMachineSiteInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateMachineSiteMutationOptions(options));
+    }
 
 export const getDeleteMachineUrl = (machineId: string,) => {
 
@@ -592,6 +666,223 @@ export function useListSites<TData = Awaited<ReturnType<typeof listSites>>, TErr
 
 
 
+
+export const getListSubnetsUrl = () => {
+
+
+
+
+  return `/api/subnets`
+}
+
+/**
+ * @summary List subnet-to-site mapping rules
+ */
+export const listSubnets = async ( options?: RequestInit): Promise<SubnetRule[]> => {
+
+  return customFetch<SubnetRule[]>(getListSubnetsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListSubnetsQueryKey = () => {
+    return [
+    `/api/subnets`
+    ] as const;
+    }
+
+
+export const getListSubnetsQueryOptions = <TData = Awaited<ReturnType<typeof listSubnets>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listSubnets>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListSubnetsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listSubnets>>> = ({ signal }) => listSubnets({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listSubnets>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListSubnetsQueryResult = NonNullable<Awaited<ReturnType<typeof listSubnets>>>
+export type ListSubnetsQueryError = ErrorType<void>
+
+
+/**
+ * @summary List subnet-to-site mapping rules
+ */
+
+export function useListSubnets<TData = Awaited<ReturnType<typeof listSubnets>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listSubnets>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListSubnetsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateSubnetUrl = () => {
+
+
+
+
+  return `/api/subnets`
+}
+
+/**
+ * @summary Create a subnet-to-site mapping rule (admin)
+ */
+export const createSubnet = async (subnetRuleInput: SubnetRuleInput, options?: RequestInit): Promise<SubnetRule> => {
+
+  return customFetch<SubnetRule>(getCreateSubnetUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(subnetRuleInput)
+  }
+);}
+
+
+
+
+export const getCreateSubnetMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSubnet>>, TError,{data: BodyType<SubnetRuleInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createSubnet>>, TError,{data: BodyType<SubnetRuleInput>}, TContext> => {
+
+const mutationKey = ['createSubnet'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createSubnet>>, {data: BodyType<SubnetRuleInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createSubnet(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateSubnetMutationResult = NonNullable<Awaited<ReturnType<typeof createSubnet>>>
+    export type CreateSubnetMutationBody = BodyType<SubnetRuleInput>
+    export type CreateSubnetMutationError = ErrorType<void>
+
+    /**
+ * @summary Create a subnet-to-site mapping rule (admin)
+ */
+export const useCreateSubnet = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSubnet>>, TError,{data: BodyType<SubnetRuleInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createSubnet>>,
+        TError,
+        {data: BodyType<SubnetRuleInput>},
+        TContext
+      > => {
+      return useMutation(getCreateSubnetMutationOptions(options));
+    }
+
+export const getDeleteSubnetUrl = (id: number,) => {
+
+
+
+
+  return `/api/subnets/${id}`
+}
+
+/**
+ * @summary Delete a subnet-to-site mapping rule (admin)
+ */
+export const deleteSubnet = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteSubnetUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteSubnetMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteSubnet>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteSubnet>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteSubnet'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteSubnet>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteSubnet(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteSubnetMutationResult = NonNullable<Awaited<ReturnType<typeof deleteSubnet>>>
+
+    export type DeleteSubnetMutationError = ErrorType<void>
+
+    /**
+ * @summary Delete a subnet-to-site mapping rule (admin)
+ */
+export const useDeleteSubnet = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteSubnet>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteSubnet>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteSubnetMutationOptions(options));
+    }
 
 export const getLoginUrl = () => {
 

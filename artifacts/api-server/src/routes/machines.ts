@@ -1,9 +1,10 @@
 import { Router } from "express";
-import { db, machinesTable } from "@workspace/db";
-import { eq, ilike, or } from "drizzle-orm";
+import { db, machinesTable, siteSubnetsTable } from "@workspace/db";
+import { eq, sql } from "drizzle-orm";
 import { computeFlags } from "../lib/flags";
+import { siteForIp } from "../lib/subnet";
 import { requireSession, requireAdmin, requireIngestToken } from "../middlewares/auth";
-import { ReportMachineBody } from "@workspace/api-zod";
+import { ReportMachineBody, UpdateMachineSiteBody } from "@workspace/api-zod";
 
 const router = Router();
 
@@ -75,6 +76,33 @@ router.delete("/machines/:machine_id", requireAdmin, async (req, res) => {
   }
 });
 
+// PATCH /machines/:machine_id — update site (admin)
+router.patch("/machines/:machine_id", requireAdmin, async (req, res) => {
+  try {
+    const { machine_id } = req.params;
+    const id = Array.isArray(machine_id) ? machine_id[0] : machine_id;
+
+    const parsed = UpdateMachineSiteBody.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: "Invalid payload", details: parsed.error.issues });
+    }
+
+    const site = parsed.data.site?.trim() || null;
+
+    const [row] = await db
+      .update(machinesTable)
+      .set({ site })
+      .where(eq(machinesTable.machine_id, id))
+      .returning();
+
+    if (!row) return res.status(404).json({ error: "Not found" });
+    return res.json(machineWithFlags(row));
+  } catch (err) {
+    req.log.error({ err }, "Error updating machine site");
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 // POST /report — ingest endpoint protected by bearer token
 router.post("/report", requireIngestToken, async (req, res) => {
   try {
@@ -86,12 +114,20 @@ router.post("/report", requireIngestToken, async (req, res) => {
     const payload = parsed.data;
     const now = new Date();
 
+    // Derive the site from subnet rules using the reported IP. An explicit
+    // (non-blank) site in the payload takes precedence over the subnet lookup.
+    // Empty/whitespace-only site is normalized to null so "blank means fill"
+    // semantics hold (an empty string would otherwise be sticky via COALESCE).
+    const rules = await db.select().from(siteSubnetsTable);
+    const explicitSite = payload.site?.trim() || null;
+    const derivedSite = explicitSite ?? siteForIp(payload.primary_ip, rules);
+
     const [row] = await db
       .insert(machinesTable)
       .values({
         machine_id: payload.machine_id,
         hostname: payload.hostname,
-        site: payload.site ?? null,
+        site: derivedSite,
         last_seen: now,
         manufacturer: payload.manufacturer ?? null,
         model: payload.model ?? null,
@@ -107,7 +143,9 @@ router.post("/report", requireIngestToken, async (req, res) => {
         target: machinesTable.machine_id,
         set: {
           hostname: payload.hostname,
-          site: payload.site ?? null,
+          // Dashboard wins: keep an existing site (set by an admin or a
+          // previous report); only fill it in when it is currently blank.
+          site: sql`COALESCE(${machinesTable.site}, ${derivedSite})`,
           last_seen: now,
           manufacturer: payload.manufacturer ?? null,
           model: payload.model ?? null,

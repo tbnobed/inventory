@@ -128,6 +128,24 @@ export interface PasswordReset {
   password: string;
 }
 
+export interface UpdateMachineSiteInput {
+  /** @nullable */
+  site: string | null;
+}
+
+export interface SubnetRule {
+  id: number;
+  cidr: string;
+  site: string;
+  created_at: string;
+}
+
+export interface SubnetRuleInput {
+  /** IPv4 CIDR, e.g. 10.1.0.0/16 */
+  cidr: string;
+  site: string;
+}
+
 export type ListMachinesParams = {
 /**
  * Free-text search across host/IP/CPU/GPU/model/OS

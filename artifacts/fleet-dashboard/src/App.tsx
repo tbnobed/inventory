@@ -5,6 +5,7 @@ import { useGetMe, getGetMeQueryKey } from "@workspace/api-client-react";
 import LoginPage from "@/pages/login";
 import DashboardPage from "@/pages/dashboard";
 import UsersPage from "@/pages/users";
+import SubnetsPage from "@/pages/subnets";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient({
@@ -57,6 +58,13 @@ function AuthGate() {
       <Route path="/users">
         {me.role === "admin" ? (
           <UsersPage username={me.username} role={me.role} />
+        ) : (
+          <Redirect to="/dashboard" />
+        )}
+      </Route>
+      <Route path="/subnets">
+        {me.role === "admin" ? (
+          <SubnetsPage username={me.username} role={me.role} />
         ) : (
           <Redirect to="/dashboard" />
         )}

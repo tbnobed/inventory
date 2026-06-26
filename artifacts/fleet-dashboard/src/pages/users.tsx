@@ -85,7 +85,6 @@ export default function UsersPage({ username, role }: Props) {
       <TopBar
         username={username}
         role={role}
-        onUsersClick={() => setLocation("/users")}
       />
 
       <div className="flex-1 overflow-auto p-4">

@@ -1,5 +1,10 @@
-import { useEffect } from "react";
-import { useGetMachine, useDeleteMachine, getListMachinesQueryKey } from "@workspace/api-client-react";
+import { useEffect, useState } from "react";
+import {
+  useGetMachine,
+  useDeleteMachine,
+  useUpdateMachineSite,
+  getListMachinesQueryKey,
+} from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import FlagPill, { CleanPill } from "./FlagPill";
 import { splitSemicolon, relativeTime } from "@/lib/utils";
@@ -46,6 +51,10 @@ export default function DetailDrawer({ machineId, onClose, isAdmin }: Props) {
     query: { enabled: !!machineId, queryKey: [machineId] as unknown[] },
   });
   const deleteMachine = useDeleteMachine();
+  const updateSite = useUpdateMachineSite();
+
+  const [editingSite, setEditingSite] = useState(false);
+  const [siteValue, setSiteValue] = useState("");
 
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
@@ -54,6 +63,24 @@ export default function DetailDrawer({ machineId, onClose, isAdmin }: Props) {
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
   }, [onClose]);
+
+  useEffect(() => {
+    setEditingSite(false);
+  }, [machineId]);
+
+  function handleSaveSite() {
+    if (!machineId) return;
+    updateSite.mutate(
+      { machineId, data: { site: siteValue.trim() || null } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: [machineId] });
+          queryClient.invalidateQueries({ queryKey: getListMachinesQueryKey() });
+          setEditingSite(false);
+        },
+      }
+    );
+  }
 
   function handleDelete() {
     if (!machineId || !confirm("Delete this machine record?")) return;
@@ -140,7 +167,64 @@ export default function DetailDrawer({ machineId, onClose, isAdmin }: Props) {
             <div className="label-upper mb-1">System Info</div>
             <KVRow label="Machine ID" value={machine.machine_id} />
             <KVRow label="Hostname" value={machine.hostname} />
-            <KVRow label="Site" value={machine.site} />
+
+            {/* Site — editable for admins */}
+            <div className="flex gap-2 py-1.5 border-b items-center" style={{ borderColor: "#232c3d" }}>
+              <span className="label-upper shrink-0 w-36">Site</span>
+              {editingSite ? (
+                <div className="flex-1 flex gap-1.5 items-center">
+                  <input
+                    data-testid="input-edit-site"
+                    autoFocus
+                    value={siteValue}
+                    onChange={(e) => setSiteValue(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleSaveSite();
+                      if (e.key === "Escape") { e.stopPropagation(); setEditingSite(false); }
+                    }}
+                    placeholder="Unassigned"
+                    className="flex-1 min-w-0 px-2 py-1 text-xs rounded border outline-none"
+                    style={{ background: "transparent", borderColor: "#36d0c4", color: "#d6deec", fontFamily: "inherit" }}
+                  />
+                  <button
+                    data-testid="button-save-site"
+                    onClick={handleSaveSite}
+                    disabled={updateSite.isPending}
+                    className="text-xs px-2 py-1 rounded shrink-0"
+                    style={{ background: "#36d0c4", color: "#0b0e14" }}
+                  >
+                    {updateSite.isPending ? "..." : "Save"}
+                  </button>
+                  <button
+                    data-testid="button-cancel-site"
+                    onClick={() => setEditingSite(false)}
+                    className="text-xs px-2 py-1 rounded border shrink-0"
+                    style={{ borderColor: "#232c3d", color: "#7d8aa3" }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              ) : (
+                <div className="flex-1 flex gap-2 items-center">
+                  <span className="text-xs" style={{ color: machine.site ? "#d6deec" : "#7d8aa3" }} data-testid="text-machine-site">
+                    {machine.site || "Unassigned"}
+                  </span>
+                  {isAdmin && (
+                    <button
+                      data-testid="button-edit-site"
+                      onClick={() => { setSiteValue(machine.site ?? ""); setEditingSite(true); }}
+                      className="label-upper transition-colors"
+                      style={{ color: "#7d8aa3" }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = "#36d0c4")}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = "#7d8aa3")}
+                    >
+                      Edit
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+
             <KVRow label="Primary IP" value={machine.primary_ip} />
             <KVRow label="Last Seen" value={machine.last_seen ? relativeTime(machine.last_seen) : undefined} />
             <KVRow label="Manufacturer" value={machine.manufacturer} />

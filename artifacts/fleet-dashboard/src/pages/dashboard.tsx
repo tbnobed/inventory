@@ -79,7 +79,6 @@ export default function DashboardPage({ userId: _userId, username, role }: Props
       <TopBar
         username={username}
         role={role}
-        onUsersClick={() => setLocation("/users")}
       />
 
       {/* Stat strip */}
