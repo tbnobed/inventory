@@ -34,7 +34,7 @@ RUN pnpm run typecheck:libs
 # VITE_ORG_NAME is baked into the bundle here; change it in .env and rebuild.
 ARG VITE_ORG_NAME="OBTV Edit Systems"
 ARG VITE_VNC_URL_TEMPLATE="vnc://{ip}"
-ARG VITE_JUMP_URL_TEMPLATE="jump://?name={hostname}"
+ARG VITE_JUMP_URL_TEMPLATE="jump://?host={hostname}&protocol=fluid"
 RUN PORT=19295 BASE_PATH=/ NODE_ENV=production VITE_ORG_NAME="$VITE_ORG_NAME" \
     VITE_VNC_URL_TEMPLATE="$VITE_VNC_URL_TEMPLATE" \
     VITE_JUMP_URL_TEMPLATE="$VITE_JUMP_URL_TEMPLATE" \
