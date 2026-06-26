@@ -12,10 +12,15 @@ function sendDownload(
   contentType: string,
   body: string,
 ) {
+  // These are all Windows scripts (.bat / .ps1). The repo stores them with LF
+  // line endings, but a Windows .bat with LF-only endings silently fails to run
+  // (double-clicking it does nothing — cmd.exe can't parse it). Force CRLF so
+  // the downloaded file runs correctly on the workstation.
+  const crlfBody = body.replace(/\r?\n/g, "\r\n");
   res.setHeader("Content-Type", contentType);
   res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
   res.setHeader("Cache-Control", "no-cache");
-  res.send(body);
+  res.send(crlfBody);
 }
 
 // Origin the request came in on (behind the Replit proxy, trust proxy=1 makes

@@ -20,14 +20,20 @@ export const ORG_NAME =
 //
 // Jump Desktop: its scheme is `jump://?host=...&protocol=...`. We use
 // `protocol=fluid` because these machines are managed by Jump Desktop Connect,
-// which connects over Fluid. Without a protocol Jump Desktop defaults to RDP,
-// and `protocol=vnc` is rejected by Jump Desktop Connect ("VNC is not supported
-// — use Fluid"). No port: Fluid negotiates its own (direct on 35384+, else relay).
+// which connects over Fluid. CRUCIAL: Connect/Fluid computers are matched by
+// their REGISTERED NAME (the machine hostname), NOT by IP — passing an IP just
+// opens the app without connecting. So the default uses `{hostname}`. Without a
+// protocol Jump Desktop defaults to RDP, and `protocol=vnc` is rejected by Jump
+// Desktop Connect ("VNC is not supported — use Fluid"). No port: Fluid resolves
+// the named computer via the account / automatic setup.
+//
+// VNC is the opposite: a standalone VNC viewer connects to the host's VNC
+// server by IP, so the VNC template uses `{ip}`.
 export const VNC_URL_TEMPLATE =
   import.meta.env.VITE_VNC_URL_TEMPLATE?.trim() || "vnc://{ip}";
 export const JUMP_URL_TEMPLATE =
   import.meta.env.VITE_JUMP_URL_TEMPLATE?.trim() ||
-  "jump://?host={ip}&protocol=fluid";
+  "jump://?host={hostname}&protocol=fluid";
 
 // Host-safe characters only: letters, digits, dot, hyphen, underscore, colon
 // (port / IPv6) and square brackets (IPv6 literal). Used to refuse launching a

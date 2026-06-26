@@ -38,6 +38,7 @@ export default function RowContextMenu({
   const ip = machine.primary_ip?.trim() || "";
   const hostname = machine.hostname?.trim() || "";
   const hasIp = ip.length > 0;
+  const hasHostname = hostname.length > 0;
 
   // Build the launch URLs up front; buildLaunchUrl returns null when the
   // machine's IP/hostname contains characters unsafe to put in a protocol URL
@@ -169,9 +170,9 @@ export default function RowContextMenu({
           title={
             jumpUrl
               ? `Open ${jumpUrl}`
-              : hasIp
-                ? "IP/hostname is not safe to launch"
-                : "No IP reported"
+              : hasHostname
+                ? "Hostname is not safe to launch"
+                : "No hostname reported (Jump Desktop connects by hostname)"
           }
           onClick={() => launch(jumpUrl)}
         />
