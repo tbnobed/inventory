@@ -1,3 +1,4 @@
 - [Session cookie setup](session-cookie-setup.md) — SameSite=None;Secure + trust proxy required behind Replit HTTPS proxy; createTableIfMissing must be false (esbuild bundles break table.sql path lookup).
 - [customFetch credentials](custom-fetch-credentials.md) — credentials:"include" must be set in lib/api-client-react/src/custom-fetch.ts for session cookies to work in all browser contexts.
 - [AuthGate routing pattern](authgate-routing.md) — drive routing from React Query me query, not imperative navigation; logout via setQueryData(meKey, null) to trigger re-render to login.
+- [Fleet reporter agent distribution](fleet-agent-distribution.md) — agent .ps1/.bat served from frontend public/; installer stores ingest token as machine env var, not on the task command line.

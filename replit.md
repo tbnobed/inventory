@@ -32,7 +32,8 @@ A self-hosted hardware fleet inventory dashboard for OBTV Edit Systems — Windo
   - `src/lib/flags.ts` — upgrade flag logic (DDR3=danger, Win10=danger, etc.)
   - `src/lib/session.ts` — express-session config
   - `src/lib/seed.ts` — admin user + 5 sample machines seeded on first boot
-- `clients/windows-reporter/Report-FleetInventory.ps1` — Windows PowerShell agent installed on workstations; collects hardware specs via CIM/WMI and POSTs to `/api/report` with the ingest bearer token. Install/scheduling instructions are in the script's comment header.
+- `artifacts/fleet-dashboard/public/Report-FleetInventory.ps1` — Windows PowerShell agent installed on workstations; collects hardware specs via CIM/WMI and POSTs to `/api/report` with the ingest bearer token. Served as a static download at `<dashboard>/Report-FleetInventory.ps1`. Install/scheduling instructions are in the script's comment header.
+- `artifacts/fleet-dashboard/public/install-fleet-reporter.bat` — one-click installer (run as Administrator). Downloads the `.ps1` from the dashboard and registers the `OBTV Fleet Inventory` scheduled task (daily 7am + at startup, SYSTEM). Dashboard URL + ingest token are set at the top of the file or passed as args. Served at `<dashboard>/install-fleet-reporter.bat`.
 - `artifacts/fleet-dashboard/src/` — React frontend
   - `src/pages/login.tsx` — login page
   - `src/pages/dashboard.tsx` — main fleet table (search, filter, sort, CSV export)
