@@ -1,11 +1,6 @@
 import { useEffect, useState } from "react";
 import type { Machine } from "@workspace/api-client-react";
-import {
-  VNC_URL_TEMPLATE,
-  JUMP_URL_TEMPLATE,
-  buildLaunchUrl,
-  launchRemote,
-} from "@/config";
+import { VNC_URL_TEMPLATE, buildLaunchUrl, launchRemote } from "@/config";
 
 interface Props {
   x: number;
@@ -38,13 +33,11 @@ export default function RowContextMenu({
   const ip = machine.primary_ip?.trim() || "";
   const hostname = machine.hostname?.trim() || "";
   const hasIp = ip.length > 0;
-  const hasHostname = hostname.length > 0;
 
-  // Build the launch URLs up front; buildLaunchUrl returns null when the
+  // Build the launch URL up front; buildLaunchUrl returns null when the
   // machine's IP/hostname contains characters unsafe to put in a protocol URL
   // (the values come from ingest and are not otherwise constrained).
   const vncUrl = buildLaunchUrl(VNC_URL_TEMPLATE, ip, hostname);
-  const jumpUrl = buildLaunchUrl(JUMP_URL_TEMPLATE, ip, hostname);
 
   // Clamp inside the viewport so the menu is never cut off near edges.
   const left = Math.max(8, Math.min(x, window.innerWidth - MENU_WIDTH - 8));
@@ -162,21 +155,6 @@ export default function RowContextMenu({
                 : "No IP reported"
           }
           onClick={() => launch(vncUrl)}
-        />
-        <MenuItem
-          label="Connect via Jump Desktop (Fluid)"
-          accent
-          disabled={!jumpUrl}
-          title={
-            jumpUrl
-              ? `Open ${jumpUrl}`
-              : JUMP_URL_TEMPLATE.includes("{ip}") && !hasIp
-                ? "No IP reported"
-                : JUMP_URL_TEMPLATE.includes("{hostname}") && !hasHostname
-                  ? "No hostname reported"
-                  : "IP/hostname is not safe to launch"
-          }
-          onClick={() => launch(jumpUrl)}
         />
         {divider}
         <MenuItem
