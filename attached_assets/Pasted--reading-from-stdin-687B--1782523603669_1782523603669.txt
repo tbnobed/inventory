@@ -1,0 +1,39 @@
+ => => reading from stdin 687B                                                                                                                                             0.0s
+ => [internal] load build definition from Dockerfile                                                                                                                       0.0s
+ => => transferring dockerfile: 3.05kB                                                                                                                                     0.0s
+ => resolve image config for docker-image://docker.io/docker/dockerfile:1                                                                                                  0.4s
+ => CACHED docker-image://docker.io/docker/dockerfile:1@sha256:87999aa3d42bdc6bea60565083ee17e86d1f3339802f543c0d03998580f9cb89                                            0.1s
+ => => resolve docker.io/docker/dockerfile:1@sha256:87999aa3d42bdc6bea60565083ee17e86d1f3339802f543c0d03998580f9cb89                                                       0.1s
+ => [internal] load metadata for docker.io/library/node:24-bookworm-slim                                                                                                   0.3s
+ => [internal] load .dockerignore                                                                                                                                          0.0s
+ => => transferring context: 517B                                                                                                                                          0.0s
+ => [base 1/3] FROM docker.io/library/node:24-bookworm-slim@sha256:b31e7a42fdf8b8aa5f5ed477c72d694301273f1069c5a2f71d53c6482e99a2fc                                        0.1s
+ => => resolve docker.io/library/node:24-bookworm-slim@sha256:b31e7a42fdf8b8aa5f5ed477c72d694301273f1069c5a2f71d53c6482e99a2fc                                             0.1s
+ => [internal] load build context                                                                                                                                          0.1s
+ => => transferring context: 17.51kB                                                                                                                                       0.0s
+ => CACHED [base 2/3] RUN corepack enable && corepack prepare pnpm@10.26.1 --activate                                                                                      0.0s
+ => CACHED [base 3/3] WORKDIR /app                                                                                                                                         0.0s
+ => CACHED [build 1/5] COPY . .                                                                                                                                            0.0s
+ => CACHED [build 2/5] RUN pnpm install --frozen-lockfile --prod=false                                                                                                     0.0s
+ => CACHED [build 3/5] RUN pnpm run typecheck:libs                                                                                                                         0.0s
+ => [build 4/5] RUN PORT=19295 BASE_PATH=/ NODE_ENV=production VITE_ORG_NAME="TBN Edit Systems"     VITE_VNC_URL_TEMPLATE="vnc://{ip}"     VITE_JUMP_URL_TEMPLATE="jump:/  8.9s
+ => [build 5/5] RUN NODE_ENV=production pnpm --filter @workspace/api-server run build                                                                                      2.2s
+ => CACHED [runtime 2/4] WORKDIR /app                                                                                                                                      0.0s
+ => CACHED [runtime 3/4] COPY --from=build /app/artifacts/api-server/dist ./dist                                                                                           0.0s
+ => [runtime 4/4] COPY --from=build /app/artifacts/fleet-dashboard/dist/public ./public                                                                                    0.1s
+ => exporting to image                                                                                                                                                     0.5s
+ => => exporting layers                                                                                                                                                    0.2s
+ => => exporting manifest sha256:3b6b17e8c7316169d24457bf0321afef8eed0c4a6bc2075d4fd7b34249687f5e                                                                          0.0s
+ => => exporting config sha256:be0c80443253fe9149196f3fd42d14aef7521ba994cb49e5a678c1c3c942d56e                                                                            0.0s
+ => => exporting attestation manifest sha256:6a7b269741d72110fc37b3e8a4dfb1b44737e84904f7968266002ba80bc92586                                                              0.1s
+ => => exporting manifest list sha256:bd84f7902ca62081782aae13384451f7b1f3216d238e8df484667a67ae601192                                                                     0.0s
+ => => naming to docker.io/library/inventory-app:latest                                                                                                                    0.0s
+ => => unpacking to docker.io/library/inventory-app:latest                                                                                                                 0.1s
+ => resolving provenance for metadata file                                                                                                                                 0.0s
+[+] up 3/3
+ ✔ Image inventory-app       Built                                                                                                                                         13.9s
+ ✔ Container inventory-db-1  Healthy                                                                                                                                       11.2s
+ ✔ Container inventory-app-1 Started                                                                                                                                       11.6s
+obtv-admin@inventory1:~/inventory$ ALTER TABLE machines ADD COLUMN IF NOT EXISTS logged_in_user text;
+-bash: ALTER: command not found
+obtv-admin@inventory1:~/inventory$
