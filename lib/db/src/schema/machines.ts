@@ -5,6 +5,7 @@ export const machinesTable = pgTable(
   {
     machine_id: text("machine_id").primaryKey(),
     hostname: text("hostname").notNull(),
+    logged_in_user: text("logged_in_user"),
     site: text("site"),
     last_seen: timestamp("last_seen", { withTimezone: true }).notNull().defaultNow(),
     manufacturer: text("manufacturer"),

@@ -25,14 +25,27 @@
   # Dry run: print the payload instead of sending it
   .\Report-FleetInventory.ps1 -DashboardUrl "https://x" -IngestToken "y" -WhatIf
 
+.PARAMETER NoSelfUpdate
+  Skip the self-update check. Set automatically on the re-launched copy after an
+  update so it can't loop. Also implied by -WhatIf.
+
 .NOTES
-  Install as a scheduled task (run from an elevated PowerShell prompt):
+  Self-update: on each run (unless -NoSelfUpdate / -WhatIf) the script downloads
+  the latest copy from <DashboardUrl>/api/agent/report.ps1 and, if its
+  $ScriptVersion is higher than the running copy, overwrites itself on disk and
+  re-launches. To push an update to the whole fleet, bump $ScriptVersion below
+  and redeploy the dashboard — every workstation picks it up on its next run.
+
+  Install as a scheduled task (run from an elevated PowerShell prompt). The
+  recommended cadence is every 2 hours plus at startup:
 
     $action  = New-ScheduledTaskAction -Execute "powershell.exe" `
-      -Argument "-NoProfile -ExecutionPolicy Bypass -File `"C:\OBTV\Report-FleetInventory.ps1`" -DashboardUrl https://fleet.obtv.example.com -IngestToken YOUR_TOKEN"
-    $trigger = New-ScheduledTaskTrigger -Daily -At 7am
+      -Argument "-NoProfile -ExecutionPolicy Bypass -File `"C:\OBTV\Report-FleetInventory.ps1`""
+    $t1 = New-ScheduledTaskTrigger -Once -At (Get-Date) `
+      -RepetitionInterval (New-TimeSpan -Hours 2) -RepetitionDuration ([TimeSpan]::MaxValue)
+    $t2 = New-ScheduledTaskTrigger -AtStartup
     Register-ScheduledTask -TaskName "OBTV Fleet Inventory" -Action $action `
-      -Trigger $trigger -RunLevel Highest -User "SYSTEM"
+      -Trigger $t1,$t2 -RunLevel Highest -User "SYSTEM"
 
   Requires PowerShell 5.1+ (ships with Windows 10/11). Run as Administrator so
   serial numbers and full hardware details are readable.
@@ -41,8 +54,14 @@
 [CmdletBinding(SupportsShouldProcess = $true)]
 param(
     [string]$DashboardUrl = $env:FLEET_DASHBOARD_URL,
-    [string]$IngestToken  = $env:FLEET_INGEST_TOKEN
+    [string]$IngestToken  = $env:FLEET_INGEST_TOKEN,
+    [switch]$NoSelfUpdate
 )
+
+# Bump this (and redeploy the dashboard) to push a new reporter to every
+# workstation. Each run downloads the latest copy and updates itself in place
+# when the served $ScriptVersion is higher than the one running.
+$ScriptVersion = 2
 
 $ErrorActionPreference = "Stop"
 
@@ -53,6 +72,38 @@ if ([string]::IsNullOrWhiteSpace($IngestToken)) {
     throw "IngestToken is required (pass -IngestToken or set FLEET_INGEST_TOKEN)."
 }
 $DashboardUrl = $DashboardUrl.TrimEnd("/")
+
+# --- Self-update -----------------------------------------------------------
+# Pull the latest reporter from the dashboard and, if it carries a higher
+# $ScriptVersion, overwrite this file on disk and re-launch the new copy. The
+# re-launched copy runs with -NoSelfUpdate so it can never loop. A failed or
+# unreachable check is non-fatal — we just continue with the current version.
+if (-not $NoSelfUpdate -and -not $WhatIfPreference -and $PSCommandPath) {
+    try {
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        $remote = (Invoke-WebRequest -Uri "$DashboardUrl/api/agent/report.ps1" `
+            -UseBasicParsing -TimeoutSec 30).Content
+        $match = [regex]::Match($remote, '(?m)^\s*\$ScriptVersion\s*=\s*(\d+)')
+        if ($match.Success) {
+            $remoteVersion = [int]$match.Groups[1].Value
+            if ($remoteVersion -gt $ScriptVersion) {
+                # Write atomically: stage to a temp file, then replace in one
+                # move so an interrupted download can never leave a corrupt
+                # half-written script on disk.
+                $tmp = "$PSCommandPath.new"
+                Set-Content -LiteralPath $tmp -Value $remote -Encoding UTF8
+                Move-Item -LiteralPath $tmp -Destination $PSCommandPath -Force
+                Write-Host "Updated reporter to v$remoteVersion (was v$ScriptVersion); re-running."
+                & powershell.exe -NoProfile -ExecutionPolicy Bypass `
+                    -File $PSCommandPath -NoSelfUpdate
+                exit $LASTEXITCODE
+            }
+        }
+    }
+    catch {
+        Write-Warning "Self-update check failed (continuing with v$ScriptVersion): $($_.Exception.Message)"
+    }
+}
 
 function Get-Cim($class) {
     try { Get-CimInstance -ClassName $class -ErrorAction Stop }
@@ -71,6 +122,12 @@ $machineId = $null
 if ($product -and $product.UUID -and $product.UUID -notmatch '^[0\-F]+$') { $machineId = $product.UUID }
 elseif ($bios -and $bios.SerialNumber) { $machineId = $bios.SerialNumber.Trim() }
 else { $machineId = $env:COMPUTERNAME }
+
+# Currently logged-on (console) user, e.g. "DOMAIN\jdoe". Win32_ComputerSystem
+# reports the interactive user even when this script runs as SYSTEM (a scheduled
+# task), unlike $env:USERNAME which would be the service account. $null when no
+# one is logged on at the console.
+$loggedInUser = if ($cs -and $cs.UserName) { $cs.UserName.Trim() } else { $null }
 
 # --- CPU / RAM -------------------------------------------------------------
 $cpu = (Get-Cim Win32_Processor | Select-Object -First 1).Name
@@ -158,8 +215,9 @@ function Join-List($items) {
 }
 
 $payload = [ordered]@{
-    machine_id   = $machineId
-    hostname     = $env:COMPUTERNAME
+    machine_id     = $machineId
+    hostname       = $env:COMPUTERNAME
+    logged_in_user = $loggedInUser
     manufacturer = if ($cs) { $cs.Manufacturer } else { $null }
     model        = if ($cs) { $cs.Model } else { $null }
     cpu          = $cpu

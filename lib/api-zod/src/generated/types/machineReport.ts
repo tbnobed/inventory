@@ -11,6 +11,8 @@ export interface MachineReport {
   machine_id: string;
   hostname: string;
   /** @nullable */
+  logged_in_user?: string | null;
+  /** @nullable */
   site?: string | null;
   /** @nullable */
   manufacturer?: string | null;

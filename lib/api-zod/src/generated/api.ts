@@ -29,6 +29,7 @@ export const ListMachinesQueryParams = zod.object({
 export const ListMachinesResponseItem = zod.object({
   "machine_id": zod.string(),
   "hostname": zod.string(),
+  "logged_in_user": zod.string().nullish(),
   "site": zod.string().nullish(),
   "last_seen": zod.coerce.date(),
   "manufacturer": zod.string().nullish(),
@@ -58,6 +59,7 @@ export const GetMachineParams = zod.object({
 export const GetMachineResponse = zod.object({
   "machine_id": zod.string(),
   "hostname": zod.string(),
+  "logged_in_user": zod.string().nullish(),
   "site": zod.string().nullish(),
   "last_seen": zod.coerce.date(),
   "manufacturer": zod.string().nullish(),
@@ -90,6 +92,7 @@ export const UpdateMachineSiteBody = zod.object({
 export const UpdateMachineSiteResponse = zod.object({
   "machine_id": zod.string(),
   "hostname": zod.string(),
+  "logged_in_user": zod.string().nullish(),
   "site": zod.string().nullish(),
   "last_seen": zod.coerce.date(),
   "manufacturer": zod.string().nullish(),
@@ -125,6 +128,7 @@ export const DeleteMachineResponse = zod.void()
 export const ReportMachineBody = zod.object({
   "machine_id": zod.string(),
   "hostname": zod.string(),
+  "logged_in_user": zod.string().nullish(),
   "site": zod.string().nullish(),
   "manufacturer": zod.string().nullish(),
   "model": zod.string().nullish(),
@@ -140,6 +144,7 @@ export const ReportMachineBody = zod.object({
 export const ReportMachineResponse = zod.object({
   "machine_id": zod.string(),
   "hostname": zod.string(),
+  "logged_in_user": zod.string().nullish(),
   "site": zod.string().nullish(),
   "last_seen": zod.coerce.date(),
   "manufacturer": zod.string().nullish(),

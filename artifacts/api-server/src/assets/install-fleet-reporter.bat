@@ -5,7 +5,9 @@ REM ============================================================
 REM  OBTV Fleet Inventory - workstation agent installer
 REM
 REM  Downloads Report-FleetInventory.ps1 from the dashboard and
-REM  registers a scheduled task that reports specs daily + at boot.
+REM  registers a scheduled task that reports specs every 2 hours + at boot.
+REM  The script self-updates on each run, so future reporter changes roll out
+REM  automatically once the dashboard is redeployed (no need to re-run this).
 REM
 REM  The dashboard URL and ingest token are stored as machine-level
 REM  environment variables (FLEET_DASHBOARD_URL / FLEET_INGEST_TOKEN)
@@ -87,7 +89,7 @@ set "FLEET_INGEST_TOKEN=%INGEST_TOKEN%"
 
 echo Registering scheduled task "%TASK_NAME%" ...
 REM The task action carries NO secret: the .ps1 reads the env vars set above.
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$a = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-NoProfile -ExecutionPolicy Bypass -File \"%SCRIPT_PATH%\"'; $t1 = New-ScheduledTaskTrigger -Daily -At 7am; $t2 = New-ScheduledTaskTrigger -AtStartup; $p = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -LogonType ServiceAccount -RunLevel Highest; Register-ScheduledTask -TaskName '%TASK_NAME%' -Action $a -Trigger $t1,$t2 -Principal $p -Force | Out-Null"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$a = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-NoProfile -ExecutionPolicy Bypass -File \"%SCRIPT_PATH%\"'; $t1 = New-ScheduledTaskTrigger -Once -At (Get-Date) -RepetitionInterval (New-TimeSpan -Hours 2) -RepetitionDuration ([TimeSpan]::MaxValue); $t2 = New-ScheduledTaskTrigger -AtStartup; $p = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -LogonType ServiceAccount -RunLevel Highest; Register-ScheduledTask -TaskName '%TASK_NAME%' -Action $a -Trigger $t1,$t2 -Principal $p -Force | Out-Null"
 if %errorlevel% neq 0 (
   echo [ERROR] Failed to register the scheduled task.
   pause
@@ -106,7 +108,8 @@ if %errorlevel% neq 0 (
 echo.
 echo === Done ===
 echo Script installed at: %SCRIPT_PATH%
-echo Scheduled task "%TASK_NAME%" runs daily at 7am and at startup (SYSTEM).
+echo Scheduled task "%TASK_NAME%" runs every 2 hours and at startup (SYSTEM).
+echo The reporter self-updates from the dashboard on each run.
 echo.
 pause
 endlocal

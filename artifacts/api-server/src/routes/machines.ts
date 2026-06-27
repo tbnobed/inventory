@@ -127,6 +127,7 @@ router.post("/report", requireIngestToken, async (req, res) => {
       .values({
         machine_id: payload.machine_id,
         hostname: payload.hostname,
+        logged_in_user: payload.logged_in_user ?? null,
         site: derivedSite,
         last_seen: now,
         manufacturer: payload.manufacturer ?? null,
@@ -143,6 +144,7 @@ router.post("/report", requireIngestToken, async (req, res) => {
         target: machinesTable.machine_id,
         set: {
           hostname: payload.hostname,
+          logged_in_user: payload.logged_in_user ?? null,
           // Dashboard wins: keep an existing site (set by an admin or a
           // previous report); only fill it in when it is currently blank.
           site: sql`COALESCE(${machinesTable.site}, ${derivedSite})`,
@@ -208,13 +210,19 @@ router.get("/export.csv", requireSession, async (req, res) => {
     const rows = await db.select().from(machinesTable);
 
     const headers = [
-      "machine_id", "hostname", "site", "last_seen",
+      "machine_id", "hostname", "logged_in_user", "site", "last_seen",
       "manufacturer", "model", "cpu", "total_ram_gb",
       "ram_type", "gpu1_model", "os", "primary_ip", "flags"
     ];
 
     const escape = (v: unknown) => {
-      const s = v == null ? "" : String(v);
+      let s = v == null ? "" : String(v);
+      // Neutralize CSV formula injection: spreadsheet apps execute cells that
+      // begin with = + - @ (and TAB/CR). logged_in_user, hostname, etc. come
+      // from untrusted ingest, so prefix a single quote to force text.
+      if (/^[=+\-@\t\r]/.test(s)) {
+        s = `'${s}`;
+      }
       if (s.includes(",") || s.includes('"') || s.includes("\n")) {
         return `"${s.replace(/"/g, '""')}"`;
       }
@@ -224,7 +232,7 @@ router.get("/export.csv", requireSession, async (req, res) => {
     const csvRows = rows.map((m) => {
       const flags = computeFlags(m).map((f) => f.label).join("; ");
       return [
-        m.machine_id, m.hostname, m.site, m.last_seen?.toISOString(),
+        m.machine_id, m.hostname, m.logged_in_user, m.site, m.last_seen?.toISOString(),
         m.manufacturer, m.model, m.cpu, m.total_ram_gb,
         m.ram_type, m.gpu1_model, m.os, m.primary_ip, flags
       ].map(escape).join(",");

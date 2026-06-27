@@ -15,7 +15,7 @@ import RowContextMenu from "@/components/RowContextMenu";
 import { relativeTime } from "@/lib/utils";
 import { useLocation } from "wouter";
 
-type SortKey = "hostname" | "primary_ip" | "site" | "cpu" | "total_ram_gb" | "ram_type" | "gpu1_model" | "os" | "last_seen";
+type SortKey = "hostname" | "logged_in_user" | "primary_ip" | "site" | "cpu" | "total_ram_gb" | "ram_type" | "gpu1_model" | "os" | "last_seen";
 
 interface Props {
   userId: number;
@@ -190,6 +190,7 @@ export default function DashboardPage({ userId: _userId, username, role }: Props
               {(
                 [
                   ["hostname", "Host"],
+                  ["logged_in_user", "User"],
                   ["primary_ip", "IP"],
                   ["site", "Site"],
                   ["cpu", "CPU"],
@@ -215,14 +216,14 @@ export default function DashboardPage({ userId: _userId, username, role }: Props
           <tbody>
             {machinesLoading && (
               <tr>
-                <td colSpan={10} className="px-3 py-8 text-center" style={{ color: "#7d8aa3" }}>
+                <td colSpan={11} className="px-3 py-8 text-center" style={{ color: "#7d8aa3" }}>
                   Loading...
                 </td>
               </tr>
             )}
             {!machinesLoading && sorted.length === 0 && (
               <tr>
-                <td colSpan={10} className="px-3 py-8 text-center" style={{ color: "#7d8aa3" }}>
+                <td colSpan={11} className="px-3 py-8 text-center" style={{ color: "#7d8aa3" }}>
                   No machines found
                 </td>
               </tr>
@@ -243,6 +244,9 @@ export default function DashboardPage({ userId: _userId, username, role }: Props
               >
                 <td className="px-3 py-2 font-semibold" style={{ color: "#36d0c4" }}>
                   {m.hostname}
+                </td>
+                <td className="px-3 py-2 max-w-40 truncate" style={{ color: "#d6deec" }} title={m.logged_in_user ?? ""}>
+                  {m.logged_in_user ?? "–"}
                 </td>
                 <td className="px-3 py-2" style={{ color: "#7d8aa3" }}>{m.primary_ip ?? "–"}</td>
                 <td className="px-3 py-2" style={{ color: "#d6deec" }}>{m.site ?? "–"}</td>

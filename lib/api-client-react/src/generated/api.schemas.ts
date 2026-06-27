@@ -32,6 +32,8 @@ export interface Machine {
   machine_id: string;
   hostname: string;
   /** @nullable */
+  logged_in_user?: string | null;
+  /** @nullable */
   site?: string | null;
   last_seen: string;
   /** @nullable */
@@ -63,6 +65,8 @@ export type MachineReportData = { [key: string]: unknown } | null;
 export interface MachineReport {
   machine_id: string;
   hostname: string;
+  /** @nullable */
+  logged_in_user?: string | null;
   /** @nullable */
   site?: string | null;
   /** @nullable */

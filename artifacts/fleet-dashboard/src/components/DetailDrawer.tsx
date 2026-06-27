@@ -183,6 +183,7 @@ export default function DetailDrawer({ machineId, onClose, isAdmin }: Props) {
             <div className="label-upper mb-1">System Info</div>
             <KVRow label="Machine ID" value={machine.machine_id} />
             <KVRow label="Hostname" value={machine.hostname} />
+            <KVRow label="Logged-in User" value={machine.logged_in_user} />
 
             {/* Site — editable for admins */}
             <div className="flex gap-2 py-1.5 border-b items-center" style={{ borderColor: "#232c3d" }}>

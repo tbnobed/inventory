@@ -15,6 +15,7 @@
 CREATE TABLE IF NOT EXISTS "machines" (
   "machine_id"   text PRIMARY KEY,
   "hostname"     text NOT NULL,
+  "logged_in_user" text,
   "site"         text,
   "last_seen"    timestamptz NOT NULL DEFAULT now(),
   "manufacturer" text,

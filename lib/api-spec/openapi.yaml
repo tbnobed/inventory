@@ -425,6 +425,8 @@ components:
           type: string
         hostname:
           type: string
+        logged_in_user:
+          type: ["string", "null"]
         site:
           type: ["string", "null"]
         last_seen:
@@ -462,6 +464,8 @@ components:
           type: string
         hostname:
           type: string
+        logged_in_user:
+          type: ["string", "null"]
         site:
           type: ["string", "null"]
         manufacturer:
