@@ -89,7 +89,7 @@ set "FLEET_INGEST_TOKEN=%INGEST_TOKEN%"
 
 echo Registering scheduled task "%TASK_NAME%" ...
 REM The task action carries NO secret: the .ps1 reads the env vars set above.
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$a = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-NoProfile -ExecutionPolicy Bypass -File \"%SCRIPT_PATH%\"'; $t1 = New-ScheduledTaskTrigger -Once -At (Get-Date) -RepetitionInterval (New-TimeSpan -Hours 2) -RepetitionDuration ([TimeSpan]::MaxValue); $t2 = New-ScheduledTaskTrigger -AtStartup; $p = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -LogonType ServiceAccount -RunLevel Highest; Register-ScheduledTask -TaskName '%TASK_NAME%' -Action $a -Trigger $t1,$t2 -Principal $p -Force | Out-Null"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$a = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-NoProfile -ExecutionPolicy Bypass -File \"%SCRIPT_PATH%\"'; $t1 = New-ScheduledTaskTrigger -Once -At (Get-Date) -RepetitionInterval (New-TimeSpan -Hours 2); $t1.Repetition.Duration = ''; $t2 = New-ScheduledTaskTrigger -AtStartup; $p = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -LogonType ServiceAccount -RunLevel Highest; Register-ScheduledTask -TaskName '%TASK_NAME%' -Action $a -Trigger $t1,$t2 -Principal $p -Force | Out-Null"
 if %errorlevel% neq 0 (
   echo [ERROR] Failed to register the scheduled task.
   pause
