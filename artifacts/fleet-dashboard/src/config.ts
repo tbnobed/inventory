@@ -23,19 +23,27 @@ export const ORG_NAME =
 //   protocol  optional — one of rdp | fluid | vnc; DEFAULTS TO rdp if omitted.
 // There is NO `name=` parameter. Omitting `host` (or using an unknown param like
 // `name`) leaves Jump with no target, so it falls back to an empty RDP session
-// (you see a Windows RDP prompt to 127.0.0.1). These machines are managed by Jump
-// Desktop Connect over Fluid, so we must pass BOTH the host AND `protocol=fluid`:
-// `jump://?host={hostname}&protocol=fluid`. The saved Connect computer name
-// matches the workstation hostname here. If a machine's Jump display name differs
-// from its hostname, override VITE_JUMP_URL_TEMPLATE so `host=` matches it.
+// (you see a Windows RDP prompt to 127.0.0.1).
 //
-// VNC is the opposite: a standalone VNC viewer connects to the host's VNC
-// server by IP, so the VNC template uses `{ip}`.
+// Use the IP, not the hostname. Jump's official troubleshooting says a hostname
+// that the viewer can't resolve makes the app open but never connect ("connection
+// refused" / nothing happens) — the fix is to address the host by IP on a LAN.
+// These machines run Jump Desktop Connect over Fluid, so we pass the IP AND
+// `protocol=fluid`: `jump://?host={ip}&protocol=fluid`.
+//
+// NOTE on Fluid: a bare host+protocol=fluid is a *direct* connection. For
+// guaranteed cloudless Fluid, Jump Desktop Connect's Fluid settings has a
+// "Copy Launch URL" button that emits a per-machine URL including the host's SSL
+// certificate fingerprint — that link can't be templated from IP alone. If the
+// IP template still only opens the app, either store each machine's Copy-Launch
+// URL, or switch to RDP (`jump://?host={ip}`) where only host is needed.
+//
+// VNC likewise: a standalone VNC viewer connects to the host's VNC server by IP.
 export const VNC_URL_TEMPLATE =
   import.meta.env.VITE_VNC_URL_TEMPLATE?.trim() || "vnc://{ip}";
 export const JUMP_URL_TEMPLATE =
   import.meta.env.VITE_JUMP_URL_TEMPLATE?.trim() ||
-  "jump://?host={hostname}&protocol=fluid";
+  "jump://?host={ip}&protocol=fluid";
 
 // Host-safe characters only: letters, digits, dot, hyphen, underscore, colon
 // (port / IPv6) and square brackets (IPv6 literal). Used to refuse launching a

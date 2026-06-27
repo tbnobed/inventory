@@ -170,9 +170,11 @@ export default function RowContextMenu({
           title={
             jumpUrl
               ? `Open ${jumpUrl}`
-              : hasHostname
-                ? "Hostname is not safe to launch"
-                : "No hostname reported (Jump Desktop connects by hostname)"
+              : JUMP_URL_TEMPLATE.includes("{ip}") && !hasIp
+                ? "No IP reported"
+                : JUMP_URL_TEMPLATE.includes("{hostname}") && !hasHostname
+                  ? "No hostname reported"
+                  : "IP/hostname is not safe to launch"
           }
           onClick={() => launch(jumpUrl)}
         />

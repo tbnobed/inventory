@@ -40,7 +40,7 @@ services:
         # Remote-connection launch templates for the row right-click menu.
         # {ip}/{hostname} are substituted. Baked in at build time.
         VITE_VNC_URL_TEMPLATE: "${VITE_VNC_URL_TEMPLATE:-vnc://{ip}}"
-        VITE_JUMP_URL_TEMPLATE: "${VITE_JUMP_URL_TEMPLATE:-jump://?host={hostname}&protocol=fluid}"
+        VITE_JUMP_URL_TEMPLATE: "${VITE_JUMP_URL_TEMPLATE:-jump://?host={ip}&protocol=fluid}"
     restart: unless-stopped
     depends_on:
       db:

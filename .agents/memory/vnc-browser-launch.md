@@ -21,7 +21,9 @@ A browser can only hand a `vnc://` link to a desktop app if a `vnc://` **URL pro
 - `protocol` — optional, one of `rdp` | `fluid` | `vnc`; **defaults to `rdp` if omitted.**
 - There is **NO `name=` parameter.** Using `name=` (or any unknown param) means `host` is absent, so Jump has no target and opens an **empty Windows RDP session prompting for 127.0.0.1**. That was the regression symptom.
 
-So for Connect/Fluid fleets the correct template is **`jump://?host={hostname}&protocol=fluid`** — you MUST pass `protocol=fluid`, because without it Jump defaults to RDP (which just opens the app / fails to connect for Connect machines, the original "opens app but doesn't connect" bug). The `host` value must match the machine's Jump display name; if a machine's Jump name differs from its hostname, override the template so `host=` matches. Mnemonic for this shop: **Jump = host={hostname}&protocol=fluid; VNC = IP**.
+So for Connect/Fluid fleets the template is **`jump://?host={ip}&protocol=fluid`** — pass `protocol=fluid` (without it Jump defaults to RDP), and address the host by **IP, not hostname**: Jump's official troubleshooting says an unresolvable hostname makes the app open but never connect on a LAN; the IP fixes it. Mnemonic for this shop: **Jump = host={ip}&protocol=fluid; VNC = IP**.
+
+**Fluid caveat (if IP template still only opens the app):** a bare `host+protocol=fluid` is a *direct* connection. For guaranteed cloudless Fluid, Jump Desktop Connect's Fluid settings has a **"Copy Launch URL"** button that emits a per-machine URL **including the host's SSL certificate fingerprint** — that link can't be templated from IP alone. Fallbacks: store each machine's Copy-Launch URL, or switch to RDP (`jump://?host={ip}`, only host needed) if RDP is enabled.
 
 **Rule:** confirm third-party URL-scheme params against the vendor's official doc, not a search-result summary (a search snippet here gave the wrong param name).
 
