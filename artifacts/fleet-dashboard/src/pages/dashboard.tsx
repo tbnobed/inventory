@@ -12,10 +12,24 @@ import TopBar from "@/components/TopBar";
 import FlagPill, { CleanPill } from "@/components/FlagPill";
 import DetailDrawer from "@/components/DetailDrawer";
 import RowContextMenu from "@/components/RowContextMenu";
+import MachineCard from "@/components/MachineCard";
 import { relativeTime } from "@/lib/utils";
 import { useLocation } from "wouter";
 
 type SortKey = "hostname" | "logged_in_user" | "primary_ip" | "site" | "cpu" | "total_ram_gb" | "ram_type" | "gpu1_model" | "os" | "last_seen";
+
+const COLUMNS: [SortKey, string][] = [
+  ["hostname", "Host"],
+  ["logged_in_user", "User"],
+  ["primary_ip", "IP"],
+  ["site", "Site"],
+  ["cpu", "CPU"],
+  ["total_ram_gb", "RAM"],
+  ["ram_type", "Type"],
+  ["gpu1_model", "GPU"],
+  ["os", "OS"],
+  ["last_seen", "Seen"],
+];
 
 interface Props {
   userId: number;
@@ -85,7 +99,7 @@ export default function DashboardPage({ userId: _userId, username, role }: Props
 
       {/* Stat strip */}
       <div
-        className="flex gap-3 px-4 py-2 border-b shrink-0 overflow-x-auto"
+        className="grid grid-cols-3 gap-2 md:flex md:gap-3 px-4 py-2 border-b shrink-0 md:overflow-x-auto"
         style={{ borderColor: "#232c3d" }}
       >
         {[
@@ -119,7 +133,7 @@ export default function DashboardPage({ userId: _userId, username, role }: Props
           placeholder="Search host, IP, CPU, GPU, OS..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 min-w-40 px-3 py-1.5 text-xs rounded border bg-transparent outline-none"
+          className="w-full md:w-auto md:flex-1 min-w-0 md:min-w-40 px-3 py-1.5 text-xs rounded border bg-transparent outline-none"
           style={{
             borderColor: "#232c3d",
             color: "#d6deec",
@@ -179,28 +193,43 @@ export default function DashboardPage({ userId: _userId, username, role }: Props
         </button>
       </div>
 
-      {/* Table */}
-      <div className="flex-1 overflow-auto">
+      {/* Mobile sort bar */}
+      <div
+        className="flex md:hidden gap-2 px-4 py-2 border-b shrink-0 items-center"
+        style={{ borderColor: "#232c3d" }}
+      >
+        <span className="label-upper shrink-0">Sort by</span>
+        <select
+          data-testid="select-sort"
+          value={sortKey}
+          onChange={(e) => setSortKey(e.target.value as SortKey)}
+          className="flex-1 px-2 py-1.5 text-xs rounded border outline-none"
+          style={{ background: "#121722", borderColor: "#232c3d", color: "#d6deec", fontFamily: "inherit" }}
+        >
+          {COLUMNS.map(([key, label]) => (
+            <option key={key} value={key}>{label}</option>
+          ))}
+        </select>
+        <button
+          data-testid="button-sort-dir"
+          onClick={() => setSortDir((d) => (d === "asc" ? "desc" : "asc"))}
+          className="px-3 py-1.5 rounded border label-upper"
+          style={{ borderColor: "#232c3d", color: "#36d0c4" }}
+          aria-label="Toggle sort direction"
+        >
+          {sortDir === "asc" ? "▲" : "▼"}
+        </button>
+      </div>
+
+      {/* Table (desktop) */}
+      <div className="flex-1 overflow-auto hidden md:block">
         <table className="w-full text-xs border-collapse" style={{ minWidth: 900 }}>
           <thead>
             <tr
               className="sticky top-0 z-10"
               style={{ background: "#161c2a", borderBottom: "1px solid #232c3d" }}
             >
-              {(
-                [
-                  ["hostname", "Host"],
-                  ["logged_in_user", "User"],
-                  ["primary_ip", "IP"],
-                  ["site", "Site"],
-                  ["cpu", "CPU"],
-                  ["total_ram_gb", "RAM"],
-                  ["ram_type", "Type"],
-                  ["gpu1_model", "GPU"],
-                  ["os", "OS"],
-                  ["last_seen", "Seen"],
-                ] as [SortKey, string][]
-              ).map(([key, label]) => (
+              {COLUMNS.map(([key, label]) => (
                 <th
                   key={key}
                   className={thStyle}
@@ -277,6 +306,28 @@ export default function DashboardPage({ userId: _userId, username, role }: Props
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Card list (mobile) */}
+      <div className="flex-1 overflow-y-auto md:hidden px-3 py-3 space-y-2">
+        {machinesLoading && (
+          <div className="px-3 py-8 text-center text-xs" style={{ color: "#7d8aa3" }}>
+            Loading...
+          </div>
+        )}
+        {!machinesLoading && sorted.length === 0 && (
+          <div className="px-3 py-8 text-center text-xs" style={{ color: "#7d8aa3" }}>
+            No machines found
+          </div>
+        )}
+        {sorted.map((m: Machine) => (
+          <MachineCard
+            key={m.machine_id}
+            machine={m}
+            onOpen={() => setSelectedId(m.machine_id)}
+            onMenu={(x, y) => setMenu({ x, y, machine: m })}
+          />
+        ))}
       </div>
 
       {/* Row right-click menu */}
