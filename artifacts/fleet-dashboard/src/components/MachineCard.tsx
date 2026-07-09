@@ -1,6 +1,6 @@
 import type { Machine } from "@workspace/api-client-react";
 import FlagPill, { CleanPill } from "./FlagPill";
-import { relativeTime } from "@/lib/utils";
+import { relativeTime, displayGpu, gpu2FromData } from "@/lib/utils";
 
 interface Props {
   machine: Machine;
@@ -84,7 +84,7 @@ export default function MachineCard({ machine: m, onOpen, onMenu }: Props) {
         <Spec label="Site" value={m.site} />
         <Spec label="CPU" value={m.cpu} />
         <Spec label="RAM" value={ram} />
-        <Spec label="GPU" value={m.gpu1_model} />
+        <Spec label="GPU" value={displayGpu(m.gpu1_model, gpu2FromData(m.data))} />
         <Spec label="OS" value={m.os} />
       </div>
     </button>

@@ -22,3 +22,27 @@ export function splitSemicolon(val: string | undefined | null): string[] {
   if (!val) return [];
   return val.split(" ; ").map((s) => s.trim()).filter(Boolean);
 }
+
+// The second GPU has no dedicated column — it lives in the raw report blob.
+export function gpu2FromData(data: unknown): string | null {
+  if (data && typeof data === "object") {
+    const v = (data as Record<string, unknown>)["GPU2_Model"];
+    if (typeof v === "string" && v.trim() !== "") return v;
+  }
+  return null;
+}
+
+// Pick the GPU to show in list views: prefer the discrete card over the
+// integrated one (Windows often enumerates the integrated GPU as GPU1).
+const DISCRETE_GPU_RE = /RTX|GTX|Quadro|Radeon\s+(RX|Pro)|\bArc\b/i;
+
+export function displayGpu(
+  gpu1: string | undefined | null,
+  gpu2: string | undefined | null
+): string | null {
+  const g1 = gpu1 || null;
+  const g2 = gpu2 || null;
+  if (g1 && DISCRETE_GPU_RE.test(g1)) return g1;
+  if (g2 && DISCRETE_GPU_RE.test(g2)) return g2;
+  return g1 ?? g2;
+}

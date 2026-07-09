@@ -5,6 +5,15 @@ export interface MachineFlag {
   severity: "danger" | "warn" | "ok";
 }
 
+/** Extract the second GPU model from the raw report blob (no dedicated column). */
+export function gpu2FromData(data: unknown): string | null {
+  if (data && typeof data === "object") {
+    const v = (data as Record<string, unknown>)["GPU2_Model"];
+    if (typeof v === "string" && v.trim() !== "") return v;
+  }
+  return null;
+}
+
 // ─── Upgrade thresholds — tune here ──────────────────────────────────────────
 const STALE_DAYS = 14;
 const LOW_RAM_GB = 64;
@@ -28,10 +37,16 @@ export function computeFlags(machine: Machine): MachineFlag[] {
     flags.push({ label: `Low RAM (${machine.total_ram_gb}GB)`, severity: "warn" });
   }
 
-  // GPU upgrade candidate
-  if (machine.gpu1_model) {
-    const isModern = MODERN_GPU_PATTERNS.some((p) =>
-      machine.gpu1_model!.includes(p)
+  // GPU upgrade candidate — consider every reported GPU, not just GPU1:
+  // Windows often enumerates the integrated GPU first, so the discrete card
+  // can land in GPU2 (stored in the data blob). Machine is modern if ANY
+  // GPU matches.
+  const gpus = [machine.gpu1_model, gpu2FromData(machine.data)].filter(
+    (g): g is string => g != null && g !== ""
+  );
+  if (gpus.length > 0) {
+    const isModern = gpus.some((g) =>
+      MODERN_GPU_PATTERNS.some((p) => g.includes(p))
     );
     if (!isModern) {
       flags.push({ label: "GPU upgrade candidate", severity: "warn" });

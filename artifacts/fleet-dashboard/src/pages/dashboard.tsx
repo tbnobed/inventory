@@ -13,7 +13,7 @@ import FlagPill, { CleanPill } from "@/components/FlagPill";
 import DetailDrawer from "@/components/DetailDrawer";
 import RowContextMenu from "@/components/RowContextMenu";
 import MachineCard from "@/components/MachineCard";
-import { relativeTime } from "@/lib/utils";
+import { relativeTime, displayGpu, gpu2FromData } from "@/lib/utils";
 import { useLocation } from "wouter";
 
 type SortKey = "hostname" | "logged_in_user" | "primary_ip" | "site" | "cpu" | "total_ram_gb" | "ram_type" | "gpu1_model" | "os" | "last_seen";
@@ -65,8 +65,13 @@ export default function DashboardPage({ userId: _userId, username, role }: Props
   }
 
   const sorted = [...machines].sort((a, b) => {
-    const av = (a as unknown as Record<string, unknown>)[sortKey];
-    const bv = (b as unknown as Record<string, unknown>)[sortKey];
+    // GPU column displays the discrete-preferred GPU, so sort by that too.
+    const av = sortKey === "gpu1_model"
+      ? displayGpu(a.gpu1_model, gpu2FromData(a.data))
+      : (a as unknown as Record<string, unknown>)[sortKey];
+    const bv = sortKey === "gpu1_model"
+      ? displayGpu(b.gpu1_model, gpu2FromData(b.data))
+      : (b as unknown as Record<string, unknown>)[sortKey];
     const as = av == null ? "" : String(av).toLowerCase();
     const bs = bv == null ? "" : String(bv).toLowerCase();
     if (as < bs) return sortDir === "asc" ? -1 : 1;
@@ -286,8 +291,8 @@ export default function DashboardPage({ userId: _userId, username, role }: Props
                   {m.total_ram_gb != null ? `${m.total_ram_gb}GB` : "–"}
                 </td>
                 <td className="px-3 py-2" style={{ color: "#d6deec" }}>{m.ram_type ?? "–"}</td>
-                <td className="px-3 py-2 max-w-40 truncate" style={{ color: "#d6deec" }} title={m.gpu1_model ?? ""}>
-                  {m.gpu1_model ?? "–"}
+                <td className="px-3 py-2 max-w-40 truncate" style={{ color: "#d6deec" }} title={displayGpu(m.gpu1_model, gpu2FromData(m.data)) ?? ""}>
+                  {displayGpu(m.gpu1_model, gpu2FromData(m.data)) ?? "–"}
                 </td>
                 <td className="px-3 py-2 max-w-40 truncate" style={{ color: "#d6deec" }} title={m.os ?? ""}>
                   {m.os ?? "–"}

@@ -72,7 +72,7 @@ Runs fully independent of Replit. Files: `Dockerfile`, `docker-compose.yml`, `do
 - **Login**: session-cookie auth; admin and viewer roles
 - **Dashboard**: sortable table of all fleet machines, search by hostname/IP/CPU/GPU/OS, filter by site or flagged status, 30s auto-refresh, stat strip (total/flagged/danger/warn/sites)
 - **Detail drawer**: click any row to see full hardware specs (CPU, RAM modules, disks, volumes, NICs, GPU drivers, BIOS)
-- **Flags**: automatic upgrade flags — DDR3=danger, DDR4=warn, <64GB RAM=warn, non-RTX40/50/60/PRO/A GPU=warn, Win10=danger, stale >14d=danger
+- **Flags**: automatic upgrade flags — DDR3=danger, DDR4=warn, <64GB RAM=warn, non-RTX40/50/60/PRO/A GPU=warn, Win10=danger, stale >14d=danger. The GPU flag considers **both** GPUs (GPU1 column + `GPU2_Model` from the `data` blob via `gpu2FromData()` in `flags.ts`) — Windows often enumerates the integrated GPU first, so the discrete card lands in GPU2. The dashboard's GPU column/card and GPU sort show the discrete-preferred GPU (`displayGpu()` in frontend `lib/utils.ts`); search and CSV export (`gpu2_model` column) are GPU2-aware too.
 - **Export**: CSV download of entire fleet via `/api/export.csv`
 - **User management**: admin-only — add/delete users, reset passwords
 - **Site editing**: admin can edit a machine's site inline in the detail drawer (`PATCH /api/machines/{id}`); blanking it lets the next report re-derive a site.

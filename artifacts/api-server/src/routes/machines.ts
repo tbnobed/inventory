@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db, machinesTable, siteSubnetsTable } from "@workspace/db";
 import { eq, sql } from "drizzle-orm";
-import { computeFlags } from "../lib/flags";
+import { computeFlags, gpu2FromData } from "../lib/flags";
 import { siteForIp } from "../lib/subnet";
 import { requireSession, requireAdmin, requireIngestToken } from "../middlewares/auth";
 import { ReportMachineBody, UpdateMachineSiteBody } from "@workspace/api-zod";
@@ -30,7 +30,7 @@ router.get("/machines", requireSession, async (req, res) => {
     if (search) {
       const q = search.toLowerCase();
       rows = rows.filter((m) =>
-        [m.hostname, m.primary_ip, m.cpu, m.gpu1_model, m.model, m.os]
+        [m.hostname, m.primary_ip, m.cpu, m.gpu1_model, gpu2FromData(m.data), m.model, m.os]
           .some((v) => v?.toLowerCase().includes(q))
       );
     }
@@ -212,7 +212,7 @@ router.get("/export.csv", requireSession, async (req, res) => {
     const headers = [
       "machine_id", "hostname", "logged_in_user", "site", "last_seen",
       "manufacturer", "model", "cpu", "total_ram_gb",
-      "ram_type", "gpu1_model", "os", "primary_ip", "flags"
+      "ram_type", "gpu1_model", "gpu2_model", "os", "primary_ip", "flags"
     ];
 
     const escape = (v: unknown) => {
@@ -234,7 +234,7 @@ router.get("/export.csv", requireSession, async (req, res) => {
       return [
         m.machine_id, m.hostname, m.logged_in_user, m.site, m.last_seen?.toISOString(),
         m.manufacturer, m.model, m.cpu, m.total_ram_gb,
-        m.ram_type, m.gpu1_model, m.os, m.primary_ip, flags
+        m.ram_type, m.gpu1_model, gpu2FromData(m.data), m.os, m.primary_ip, flags
       ].map(escape).join(",");
     });
 
