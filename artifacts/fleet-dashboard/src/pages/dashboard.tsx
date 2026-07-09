@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import {
   useListMachines,
   useGetStats,
@@ -43,6 +43,8 @@ export default function DashboardPage({ userId: _userId, username, role }: Props
   const [flaggedOnly, setFlaggedOnly] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>("hostname");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [menu, setMenu] = useState<{ x: number; y: number; machine: Machine } | null>(null);
   const [, setLocation] = useLocation();
@@ -62,6 +64,7 @@ export default function DashboardPage({ userId: _userId, username, role }: Props
       setSortKey(key);
       setSortDir("asc");
     }
+    setPage(1);
   }
 
   const sorted = [...machines].sort((a, b) => {
@@ -79,7 +82,23 @@ export default function DashboardPage({ userId: _userId, username, role }: Props
     return 0;
   });
 
+  // Pagination (clamped so a shrinking result set never strands the user on
+  // an empty page — e.g. after a search or the 30s auto-refresh).
+  const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize));
+  const curPage = Math.min(page, totalPages);
+  const paged = sorted.slice((curPage - 1) * pageSize, curPage * pageSize);
+  const rangeStart = sorted.length === 0 ? 0 : (curPage - 1) * pageSize + 1;
+  const rangeEnd = Math.min(curPage * pageSize, sorted.length);
+
   const closeDrawer = useCallback(() => setSelectedId(null), []);
+
+  // Jump back to the top of the list when the page changes.
+  const tableRef = useRef<HTMLDivElement>(null);
+  const cardsRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    tableRef.current?.scrollTo({ top: 0 });
+    cardsRef.current?.scrollTo({ top: 0 });
+  }, [curPage, pageSize]);
 
   function exportCsv() {
     window.location.href = "/api/export.csv";
@@ -137,7 +156,7 @@ export default function DashboardPage({ userId: _userId, username, role }: Props
           type="search"
           placeholder="Search host, IP, CPU, GPU, OS..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           className="w-full md:w-auto md:flex-1 min-w-0 md:min-w-40 px-3 py-1.5 text-xs rounded border bg-transparent outline-none"
           style={{
             borderColor: "#232c3d",
@@ -149,7 +168,7 @@ export default function DashboardPage({ userId: _userId, username, role }: Props
         <select
           data-testid="select-site"
           value={siteFilter}
-          onChange={(e) => setSiteFilter(e.target.value)}
+          onChange={(e) => { setSiteFilter(e.target.value); setPage(1); }}
           className="px-2 py-1.5 text-xs rounded border outline-none"
           style={{
             background: "#121722",
@@ -167,7 +186,7 @@ export default function DashboardPage({ userId: _userId, username, role }: Props
         <select
           data-testid="select-filter"
           value={flaggedOnly ? "flagged" : "all"}
-          onChange={(e) => setFlaggedOnly(e.target.value === "flagged")}
+          onChange={(e) => { setFlaggedOnly(e.target.value === "flagged"); setPage(1); }}
           className="px-2 py-1.5 text-xs rounded border outline-none"
           style={{
             background: "#121722",
@@ -207,7 +226,7 @@ export default function DashboardPage({ userId: _userId, username, role }: Props
         <select
           data-testid="select-sort"
           value={sortKey}
-          onChange={(e) => setSortKey(e.target.value as SortKey)}
+          onChange={(e) => { setSortKey(e.target.value as SortKey); setPage(1); }}
           className="flex-1 px-2 py-1.5 text-xs rounded border outline-none"
           style={{ background: "#121722", borderColor: "#232c3d", color: "#d6deec", fontFamily: "inherit" }}
         >
@@ -217,7 +236,7 @@ export default function DashboardPage({ userId: _userId, username, role }: Props
         </select>
         <button
           data-testid="button-sort-dir"
-          onClick={() => setSortDir((d) => (d === "asc" ? "desc" : "asc"))}
+          onClick={() => { setSortDir((d) => (d === "asc" ? "desc" : "asc")); setPage(1); }}
           className="px-3 py-1.5 rounded border label-upper"
           style={{ borderColor: "#232c3d", color: "#36d0c4" }}
           aria-label="Toggle sort direction"
@@ -227,7 +246,7 @@ export default function DashboardPage({ userId: _userId, username, role }: Props
       </div>
 
       {/* Table (desktop) */}
-      <div className="flex-1 overflow-auto hidden md:block">
+      <div ref={tableRef} className="flex-1 overflow-auto hidden md:block">
         <table className="w-full text-xs border-collapse" style={{ minWidth: 900 }}>
           <thead>
             <tr
@@ -262,7 +281,7 @@ export default function DashboardPage({ userId: _userId, username, role }: Props
                 </td>
               </tr>
             )}
-            {sorted.map((m: Machine) => (
+            {paged.map((m: Machine) => (
               <tr
                 key={m.machine_id}
                 data-testid={`row-machine-${m.machine_id}`}
@@ -314,7 +333,7 @@ export default function DashboardPage({ userId: _userId, username, role }: Props
       </div>
 
       {/* Card list (mobile) */}
-      <div className="flex-1 overflow-y-auto md:hidden px-3 py-3 space-y-2">
+      <div ref={cardsRef} className="flex-1 overflow-y-auto md:hidden px-3 py-3 space-y-2">
         {machinesLoading && (
           <div className="px-3 py-8 text-center text-xs" style={{ color: "#7d8aa3" }}>
             Loading...
@@ -325,7 +344,7 @@ export default function DashboardPage({ userId: _userId, username, role }: Props
             No machines found
           </div>
         )}
-        {sorted.map((m: Machine) => (
+        {paged.map((m: Machine) => (
           <MachineCard
             key={m.machine_id}
             machine={m}
@@ -333,6 +352,77 @@ export default function DashboardPage({ userId: _userId, username, role }: Props
             onMenu={(x, y) => setMenu({ x, y, machine: m })}
           />
         ))}
+      </div>
+
+      {/* Pagination footer */}
+      <div
+        className="flex flex-wrap items-center gap-2 px-4 py-2 border-t shrink-0"
+        style={{ borderColor: "#232c3d", background: "#0b0e14" }}
+      >
+        <span className="label-upper" data-testid="text-page-range">
+          {sorted.length === 0 ? "0 machines" : `${rangeStart}–${rangeEnd} of ${sorted.length}`}
+        </span>
+
+        <div className="flex items-center gap-1 ml-auto">
+          <span className="label-upper hidden sm:inline">Per page</span>
+          <select
+            data-testid="select-page-size"
+            value={pageSize}
+            onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
+            className="px-2 py-1 text-xs rounded border outline-none"
+            style={{ background: "#121722", borderColor: "#232c3d", color: "#d6deec", fontFamily: "inherit" }}
+          >
+            {[25, 50, 100, 250].map((n) => (
+              <option key={n} value={n}>{n}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex items-center gap-1">
+          <button
+            data-testid="button-page-first"
+            onClick={() => setPage(1)}
+            disabled={curPage <= 1}
+            className="px-2 py-1 text-xs rounded border disabled:opacity-30"
+            style={{ borderColor: "#232c3d", color: "#36d0c4" }}
+            aria-label="First page"
+          >
+            «
+          </button>
+          <button
+            data-testid="button-page-prev"
+            onClick={() => setPage(curPage - 1)}
+            disabled={curPage <= 1}
+            className="px-2 py-1 text-xs rounded border disabled:opacity-30"
+            style={{ borderColor: "#232c3d", color: "#36d0c4" }}
+            aria-label="Previous page"
+          >
+            ‹
+          </button>
+          <span className="px-2 text-xs whitespace-nowrap" style={{ color: "#7d8aa3" }} data-testid="text-page-indicator">
+            {curPage} / {totalPages}
+          </span>
+          <button
+            data-testid="button-page-next"
+            onClick={() => setPage(curPage + 1)}
+            disabled={curPage >= totalPages}
+            className="px-2 py-1 text-xs rounded border disabled:opacity-30"
+            style={{ borderColor: "#232c3d", color: "#36d0c4" }}
+            aria-label="Next page"
+          >
+            ›
+          </button>
+          <button
+            data-testid="button-page-last"
+            onClick={() => setPage(totalPages)}
+            disabled={curPage >= totalPages}
+            className="px-2 py-1 text-xs rounded border disabled:opacity-30"
+            style={{ borderColor: "#232c3d", color: "#36d0c4" }}
+            aria-label="Last page"
+          >
+            »
+          </button>
+        </div>
       </div>
 
       {/* Row right-click menu */}
