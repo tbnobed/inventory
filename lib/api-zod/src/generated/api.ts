@@ -40,6 +40,7 @@ export const ListMachinesResponseItem = zod.object({
   "gpu1_model": zod.string().nullish(),
   "os": zod.string().nullish(),
   "primary_ip": zod.string().nullish(),
+  "notes": zod.string().nullish(),
   "data": zod.record(zod.string(), zod.unknown()).nullish(),
   "flags": zod.array(zod.object({
   "label": zod.string(),
@@ -70,6 +71,7 @@ export const GetMachineResponse = zod.object({
   "gpu1_model": zod.string().nullish(),
   "os": zod.string().nullish(),
   "primary_ip": zod.string().nullish(),
+  "notes": zod.string().nullish(),
   "data": zod.record(zod.string(), zod.unknown()).nullish(),
   "flags": zod.array(zod.object({
   "label": zod.string(),
@@ -79,17 +81,22 @@ export const GetMachineResponse = zod.object({
 
 
 /**
- * @summary Update a machine's site (admin)
+ * @summary Update a machine's editable fields — site, notes (admin)
  */
-export const UpdateMachineSiteParams = zod.object({
+export const UpdateMachineParams = zod.object({
   "machine_id": zod.coerce.string()
 })
 
-export const UpdateMachineSiteBody = zod.object({
-  "site": zod.string().nullable()
-})
+export const updateMachineBodyNotesMax = 10000;
 
-export const UpdateMachineSiteResponse = zod.object({
+
+
+export const UpdateMachineBody = zod.object({
+  "site": zod.string().nullish(),
+  "notes": zod.string().max(updateMachineBodyNotesMax).nullish()
+}).describe('Partial update — only the provided fields are changed.')
+
+export const UpdateMachineResponse = zod.object({
   "machine_id": zod.string(),
   "hostname": zod.string(),
   "logged_in_user": zod.string().nullish(),
@@ -103,6 +110,7 @@ export const UpdateMachineSiteResponse = zod.object({
   "gpu1_model": zod.string().nullish(),
   "os": zod.string().nullish(),
   "primary_ip": zod.string().nullish(),
+  "notes": zod.string().nullish(),
   "data": zod.record(zod.string(), zod.unknown()).nullish(),
   "flags": zod.array(zod.object({
   "label": zod.string(),
@@ -155,6 +163,7 @@ export const ReportMachineResponse = zod.object({
   "gpu1_model": zod.string().nullish(),
   "os": zod.string().nullish(),
   "primary_ip": zod.string().nullish(),
+  "notes": zod.string().nullish(),
   "data": zod.record(zod.string(), zod.unknown()).nullish(),
   "flags": zod.array(zod.object({
   "label": zod.string(),

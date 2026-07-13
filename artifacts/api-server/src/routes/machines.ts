@@ -4,7 +4,7 @@ import { eq, sql } from "drizzle-orm";
 import { computeFlags, gpu2FromData } from "../lib/flags";
 import { siteForIp } from "../lib/subnet";
 import { requireSession, requireAdmin, requireIngestToken } from "../middlewares/auth";
-import { ReportMachineBody, UpdateMachineSiteBody } from "@workspace/api-zod";
+import { ReportMachineBody, UpdateMachineBody } from "@workspace/api-zod";
 
 const router = Router();
 
@@ -30,7 +30,7 @@ router.get("/machines", requireSession, async (req, res) => {
     if (search) {
       const q = search.toLowerCase();
       rows = rows.filter((m) =>
-        [m.hostname, m.primary_ip, m.cpu, m.gpu1_model, gpu2FromData(m.data), m.model, m.os]
+        [m.hostname, m.primary_ip, m.cpu, m.gpu1_model, gpu2FromData(m.data), m.model, m.os, m.notes]
           .some((v) => v?.toLowerCase().includes(q))
       );
     }
@@ -76,29 +76,35 @@ router.delete("/machines/:machine_id", requireAdmin, async (req, res) => {
   }
 });
 
-// PATCH /machines/:machine_id — update site (admin)
+// PATCH /machines/:machine_id — partial update of editable fields (admin).
+// Only fields present in the body are changed; blank strings normalize to null.
 router.patch("/machines/:machine_id", requireAdmin, async (req, res) => {
   try {
     const { machine_id } = req.params;
     const id = Array.isArray(machine_id) ? machine_id[0] : machine_id;
 
-    const parsed = UpdateMachineSiteBody.safeParse(req.body);
+    const parsed = UpdateMachineBody.safeParse(req.body);
     if (!parsed.success) {
       return res.status(400).json({ error: "Invalid payload", details: parsed.error.issues });
     }
 
-    const site = parsed.data.site?.trim() || null;
+    const updates: { site?: string | null; notes?: string | null } = {};
+    if ("site" in parsed.data) updates.site = parsed.data.site?.trim() || null;
+    if ("notes" in parsed.data) updates.notes = parsed.data.notes?.trim() || null;
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ error: "No fields to update" });
+    }
 
     const [row] = await db
       .update(machinesTable)
-      .set({ site })
+      .set(updates)
       .where(eq(machinesTable.machine_id, id))
       .returning();
 
     if (!row) return res.status(404).json({ error: "Not found" });
     return res.json(machineWithFlags(row));
   } catch (err) {
-    req.log.error({ err }, "Error updating machine site");
+    req.log.error({ err }, "Error updating machine");
     return res.status(500).json({ error: "Internal server error" });
   }
 });
@@ -212,7 +218,7 @@ router.get("/export.csv", requireSession, async (req, res) => {
     const headers = [
       "machine_id", "hostname", "logged_in_user", "site", "last_seen",
       "manufacturer", "model", "cpu", "total_ram_gb",
-      "ram_type", "gpu1_model", "gpu2_model", "os", "primary_ip", "flags"
+      "ram_type", "gpu1_model", "gpu2_model", "os", "primary_ip", "notes", "flags"
     ];
 
     const escape = (v: unknown) => {
@@ -234,7 +240,7 @@ router.get("/export.csv", requireSession, async (req, res) => {
       return [
         m.machine_id, m.hostname, m.logged_in_user, m.site, m.last_seen?.toISOString(),
         m.manufacturer, m.model, m.cpu, m.total_ram_gb,
-        m.ram_type, m.gpu1_model, gpu2FromData(m.data), m.os, m.primary_ip, flags
+        m.ram_type, m.gpu1_model, gpu2FromData(m.data), m.os, m.primary_ip, m.notes, flags
       ].map(escape).join(",");
     });
 

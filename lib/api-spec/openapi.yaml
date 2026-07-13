@@ -89,9 +89,9 @@ paths:
         "404":
           description: Not found
     patch:
-      operationId: updateMachineSite
+      operationId: updateMachine
       tags: [machines]
-      summary: Update a machine's site (admin)
+      summary: Update a machine's editable fields — site, notes (admin)
       parameters:
         - name: machine_id
           in: path
@@ -103,7 +103,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UpdateMachineSiteInput"
+              $ref: "#/components/schemas/UpdateMachineInput"
       responses:
         "200":
           description: Updated machine
@@ -448,6 +448,8 @@ components:
           type: ["string", "null"]
         primary_ip:
           type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
         data:
           type: ["object", "null"]
           additionalProperties: true
@@ -553,12 +555,15 @@ components:
         password:
           type: string
 
-    UpdateMachineSiteInput:
+    UpdateMachineInput:
       type: object
-      required: [site]
+      description: Partial update — only the provided fields are changed.
       properties:
         site:
           type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+          maxLength: 10000
 
     SubnetRule:
       type: object

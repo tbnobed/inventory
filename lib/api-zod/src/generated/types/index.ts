@@ -19,7 +19,7 @@ export * from './machineReportData';
 export * from './passwordReset';
 export * from './subnetRule';
 export * from './subnetRuleInput';
-export * from './updateMachineSiteInput';
+export * from './updateMachineInput';
 export * from './user';
 export * from './userInput';
 export * from './userInputRole';

@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS "machines" (
   "gpu1_model"   text,
   "os"           text,
   "primary_ip"   text,
+  "notes"        text,
   "data"         jsonb
 );
 CREATE INDEX IF NOT EXISTS "machines_hostname_idx" ON "machines" ("hostname");

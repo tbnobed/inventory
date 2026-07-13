@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import {
   useGetMachine,
   useDeleteMachine,
-  useUpdateMachineSite,
+  useUpdateMachine,
   useListSubnets,
   getListMachinesQueryKey,
   getListSubnetsQueryKey,
@@ -53,12 +53,14 @@ export default function DetailDrawer({ machineId, onClose, isAdmin }: Props) {
     query: { enabled: !!machineId, queryKey: [machineId] as unknown[] },
   });
   const deleteMachine = useDeleteMachine();
-  const updateSite = useUpdateMachineSite();
+  const updateMachine = useUpdateMachine();
 
   const { data: subnets = [] } = useListSubnets({ query: { queryKey: getListSubnetsQueryKey() } });
 
   const [editingSite, setEditingSite] = useState(false);
   const [siteValue, setSiteValue] = useState("");
+  const [editingNotes, setEditingNotes] = useState(false);
+  const [notesValue, setNotesValue] = useState("");
 
   // Site Mapping is the single source of truth: the dropdown only lists sites
   // defined in subnet rules. The machine's current site is also included so a
@@ -82,17 +84,32 @@ export default function DetailDrawer({ machineId, onClose, isAdmin }: Props) {
 
   useEffect(() => {
     setEditingSite(false);
+    setEditingNotes(false);
   }, [machineId]);
 
   function handleSaveSite() {
     if (!machineId) return;
-    updateSite.mutate(
+    updateMachine.mutate(
       { machineId, data: { site: siteValue.trim() || null } },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: [machineId] });
           queryClient.invalidateQueries({ queryKey: getListMachinesQueryKey() });
           setEditingSite(false);
+        },
+      }
+    );
+  }
+
+  function handleSaveNotes() {
+    if (!machineId) return;
+    updateMachine.mutate(
+      { machineId, data: { notes: notesValue.trim() || null } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: [machineId] });
+          queryClient.invalidateQueries({ queryKey: getListMachinesQueryKey() });
+          setEditingNotes(false);
         },
       }
     );
@@ -206,11 +223,11 @@ export default function DetailDrawer({ machineId, onClose, isAdmin }: Props) {
                   <button
                     data-testid="button-save-site"
                     onClick={handleSaveSite}
-                    disabled={updateSite.isPending}
+                    disabled={updateMachine.isPending}
                     className="text-xs px-2 py-1 rounded shrink-0"
                     style={{ background: "#36d0c4", color: "#0b0e14" }}
                   >
-                    {updateSite.isPending ? "..." : "Save"}
+                    {updateMachine.isPending ? "..." : "Save"}
                   </button>
                   <button
                     data-testid="button-cancel-site"
@@ -257,6 +274,71 @@ export default function DetailDrawer({ machineId, onClose, isAdmin }: Props) {
             <KVRow label="GPU1 Driver" value={data?.GPU1_Driver} />
             <KVRow label="GPU2" value={data?.GPU2_Model} />
             <KVRow label="GPU2 Driver" value={data?.GPU2_Driver} />
+
+            {/* Notes — editable for admins */}
+            <div className="mt-4">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="label-upper">Notes</div>
+                {isAdmin && !editingNotes && (
+                  <button
+                    data-testid="button-edit-notes"
+                    onClick={() => { setNotesValue(machine.notes ?? ""); setEditingNotes(true); }}
+                    className="text-xs px-2 py-0.5 rounded border shrink-0 transition-colors"
+                    style={{ borderColor: "#2a3754", color: "#36d0c4" }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(54,208,196,0.1)"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+                  >
+                    {machine.notes ? "Edit" : "Add"}
+                  </button>
+                )}
+              </div>
+              {editingNotes ? (
+                <div className="space-y-1.5">
+                  <textarea
+                    data-testid="input-edit-notes"
+                    autoFocus
+                    value={notesValue}
+                    onChange={(e) => setNotesValue(e.target.value)}
+                    maxLength={10000}
+                    rows={4}
+                    placeholder="Deployment details, known issues, hardware quirks..."
+                    className="w-full px-2 py-1.5 text-xs rounded border outline-none resize-y"
+                    style={{ background: "#161c2a", borderColor: "#36d0c4", color: "#d6deec", fontFamily: "inherit" }}
+                  />
+                  <div className="flex gap-1.5">
+                    <button
+                      data-testid="button-save-notes"
+                      onClick={handleSaveNotes}
+                      disabled={updateMachine.isPending}
+                      className="text-xs px-2 py-1 rounded"
+                      style={{ background: "#36d0c4", color: "#0b0e14" }}
+                    >
+                      {updateMachine.isPending ? "..." : "Save"}
+                    </button>
+                    <button
+                      data-testid="button-cancel-notes"
+                      onClick={() => setEditingNotes(false)}
+                      className="text-xs px-2 py-1 rounded border"
+                      style={{ borderColor: "#232c3d", color: "#7d8aa3" }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : machine.notes ? (
+                <div
+                  data-testid="text-machine-notes"
+                  className="text-xs px-2 py-1.5 rounded whitespace-pre-wrap"
+                  style={{ background: "#161c2a", color: "#d6deec" }}
+                >
+                  {machine.notes}
+                </div>
+              ) : (
+                <div className="text-xs" style={{ color: "#7d8aa3" }} data-testid="text-machine-notes-empty">
+                  No notes
+                </div>
+              )}
+            </div>
 
             {/* List sections */}
             <ListSection title="Memory Modules" items={splitSemicolon(data?.RAM_Modules)} />

@@ -33,6 +33,8 @@ export interface Machine {
   /** @nullable */
   primary_ip?: string | null;
   /** @nullable */
+  notes?: string | null;
+  /** @nullable */
   data?: MachineData;
   flags: MachineFlag[];
 }

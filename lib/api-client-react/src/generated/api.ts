@@ -29,7 +29,7 @@ import type {
   PasswordReset,
   SubnetRule,
   SubnetRuleInput,
-  UpdateMachineSiteInput,
+  UpdateMachineInput,
   User,
   UserInput,
   UserSession
@@ -301,7 +301,7 @@ export function useGetMachine<TData = Awaited<ReturnType<typeof getMachine>>, TE
 
 
 
-export const getUpdateMachineSiteUrl = (machineId: string,) => {
+export const getUpdateMachineUrl = (machineId: string,) => {
 
 
 
@@ -310,28 +310,28 @@ export const getUpdateMachineSiteUrl = (machineId: string,) => {
 }
 
 /**
- * @summary Update a machine's site (admin)
+ * @summary Update a machine's editable fields — site, notes (admin)
  */
-export const updateMachineSite = async (machineId: string,
-    updateMachineSiteInput: UpdateMachineSiteInput, options?: RequestInit): Promise<Machine> => {
+export const updateMachine = async (machineId: string,
+    updateMachineInput: UpdateMachineInput, options?: RequestInit): Promise<Machine> => {
 
-  return customFetch<Machine>(getUpdateMachineSiteUrl(machineId),
+  return customFetch<Machine>(getUpdateMachineUrl(machineId),
   {
     ...options,
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(updateMachineSiteInput)
+    body: JSON.stringify(updateMachineInput)
   }
 );}
 
 
 
 
-export const getUpdateMachineSiteMutationOptions = <TError = ErrorType<void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMachineSite>>, TError,{machineId: string;data: BodyType<UpdateMachineSiteInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof updateMachineSite>>, TError,{machineId: string;data: BodyType<UpdateMachineSiteInput>}, TContext> => {
+export const getUpdateMachineMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMachine>>, TError,{machineId: string;data: BodyType<UpdateMachineInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateMachine>>, TError,{machineId: string;data: BodyType<UpdateMachineInput>}, TContext> => {
 
-const mutationKey = ['updateMachineSite'];
+const mutationKey = ['updateMachine'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -341,10 +341,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateMachineSite>>, {machineId: string;data: BodyType<UpdateMachineSiteInput>}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateMachine>>, {machineId: string;data: BodyType<UpdateMachineInput>}> = (props) => {
           const {machineId,data} = props ?? {};
 
-          return  updateMachineSite(machineId,data,requestOptions)
+          return  updateMachine(machineId,data,requestOptions)
         }
 
 
@@ -354,22 +354,22 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type UpdateMachineSiteMutationResult = NonNullable<Awaited<ReturnType<typeof updateMachineSite>>>
-    export type UpdateMachineSiteMutationBody = BodyType<UpdateMachineSiteInput>
-    export type UpdateMachineSiteMutationError = ErrorType<void>
+    export type UpdateMachineMutationResult = NonNullable<Awaited<ReturnType<typeof updateMachine>>>
+    export type UpdateMachineMutationBody = BodyType<UpdateMachineInput>
+    export type UpdateMachineMutationError = ErrorType<void>
 
     /**
- * @summary Update a machine's site (admin)
+ * @summary Update a machine's editable fields — site, notes (admin)
  */
-export const useUpdateMachineSite = <TError = ErrorType<void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMachineSite>>, TError,{machineId: string;data: BodyType<UpdateMachineSiteInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+export const useUpdateMachine = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMachine>>, TError,{machineId: string;data: BodyType<UpdateMachineInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
  ): UseMutationResult<
-        Awaited<ReturnType<typeof updateMachineSite>>,
+        Awaited<ReturnType<typeof updateMachine>>,
         TError,
-        {machineId: string;data: BodyType<UpdateMachineSiteInput>},
+        {machineId: string;data: BodyType<UpdateMachineInput>},
         TContext
       > => {
-      return useMutation(getUpdateMachineSiteMutationOptions(options));
+      return useMutation(getUpdateMachineMutationOptions(options));
     }
 
 export const getDeleteMachineUrl = (machineId: string,) => {

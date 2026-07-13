@@ -53,6 +53,8 @@ export interface Machine {
   /** @nullable */
   primary_ip?: string | null;
   /** @nullable */
+  notes?: string | null;
+  /** @nullable */
   data?: MachineData;
   flags: MachineFlag[];
 }
@@ -132,9 +134,17 @@ export interface PasswordReset {
   password: string;
 }
 
-export interface UpdateMachineSiteInput {
+/**
+ * Partial update — only the provided fields are changed.
+ */
+export interface UpdateMachineInput {
   /** @nullable */
-  site: string | null;
+  site?: string | null;
+  /**
+     * @maxLength 10000
+     * @nullable
+     */
+  notes?: string | null;
 }
 
 export interface SubnetRule {

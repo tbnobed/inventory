@@ -16,6 +16,7 @@ export const machinesTable = pgTable(
     gpu1_model: text("gpu1_model"),
     os: text("os"),
     primary_ip: text("primary_ip"),
+    notes: text("notes"),
     data: jsonb("data"),
   },
   (t) => [
