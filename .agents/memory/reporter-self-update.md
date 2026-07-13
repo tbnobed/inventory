@@ -17,6 +17,6 @@ The reporter `.ps1` carries a `$ScriptVersion` integer constant. On each run (un
 
 # Schema additions and already-deployed prod DBs
 
-`docker/postgres/initdb/*.sql` only runs on a **fresh** Postgres volume. The app does not run migrations against existing DBs. So any new column must be applied by hand to a live prod DB, e.g. `ALTER TABLE machines ADD COLUMN IF NOT EXISTS <col> <type>;`, in addition to updating `initdb/*.sql` (for fresh installs) and `lib/db/src/schema/*.ts`.
+The app now runs idempotent startup migrations on every boot (`artifacts/api-server/src/lib/migrate.ts` — CREATE/ALTER ... IF NOT EXISTS, fatal on failure). Fresh and existing DBs both converge automatically, so a Docker rebuild is a complete deploy; the old `docker/postgres/initdb/` init SQL was removed as a second source of truth.
 
-**Why:** `pnpm db push` is unusable in this environment (interactive TTY prompt, no non-interactive flag), and the self-hosted prod runs its own Postgres with no migration runner.
+**How to apply:** every schema change goes in two places — `lib/db/src/schema/*.ts` AND `migrate.ts` (new columns in both the baseline CREATE TABLE and an incremental ALTER). Dev DB still needs the DDL applied via executeSql (`pnpm db push` is unusable: interactive TTY prompt) — or just restart the API server, which now runs the migrations.

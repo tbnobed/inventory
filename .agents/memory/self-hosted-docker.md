@@ -6,10 +6,11 @@ description: How the app is packaged to run independent of Replit (single contai
 # Self-hosted Docker deployment
 
 The app can run fully independent of Replit via Docker (`Dockerfile`,
-`docker-compose.yml`, `docker/postgres/initdb/`, `.env.example`). One **app**
-container (Express serves `/api/*` **and** the built React SPA) + one **db**
-container (Postgres with init SQL). Nginx Proxy Manager terminates TLS and
-proxies one domain → the app port; we ship no nginx config of our own.
+`docker-compose.yml`, `.env.example`). One **app** container (Express serves
+`/api/*` **and** the built React SPA) + one **db** container (plain Postgres —
+no init SQL; the app migrates the schema itself at startup). Nginx Proxy
+Manager terminates TLS and proxies one domain → the app port; we ship no
+nginx config of our own.
 
 ## Single-origin serving
 - Express serves the SPA when `PUBLIC_DIR` is set: `express.static(PUBLIC_DIR)`
@@ -32,7 +33,10 @@ proxies one domain → the app port; we ship no nginx config of our own.
   prunes them and the build fails. Use `pnpm install --frozen-lockfile --prod=false`
   in the build stage and apply `NODE_ENV=production` inline per build command +
   on the runtime stage only.
-- DB schema for a fresh volume comes from `docker/postgres/initdb/*.sql` (runs
-  once on empty data dir), which must include the connect-pg-simple `session`
-  table because the app runs `createTableIfMissing:false`. Keep that SQL in sync
-  with `lib/db/src/schema/*.ts` (`db push` is interactive/unusable here).
+- DB schema is app-managed: idempotent startup migrations in
+  `artifacts/api-server/src/lib/migrate.ts` run on every boot before listen
+  (fatal on failure), covering fresh DBs and upgrades — including the
+  connect-pg-simple `session` table (`createTableIfMissing:false`). The former
+  `docker/postgres/initdb/*.sql` mechanism was removed (only ran on a fresh
+  volume, never migrated existing DBs). Keep `migrate.ts` in lockstep with
+  `lib/db/src/schema/*.ts` (`db push` is interactive/unusable here).

@@ -21,8 +21,9 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-fleet}
     volumes:
       - pgdata:/var/lib/postgresql/data
-      # SQL in here runs once, on first init of an empty data dir.
-      - ./docker/postgres/initdb:/docker-entrypoint-initdb.d:ro
+      # No init SQL needed: the app runs idempotent schema migrations on every
+      # boot (artifacts/api-server/src/lib/migrate.ts), so a fresh database is
+      # created and an existing one is upgraded automatically.
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-fleet} -d ${POSTGRES_DB:-fleet}"]
       interval: 5s

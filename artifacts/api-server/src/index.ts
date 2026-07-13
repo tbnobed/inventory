@@ -1,5 +1,6 @@
 import app from "./app";
 import { logger } from "./lib/logger";
+import { runMigrations } from "./lib/migrate";
 import { seedAdminUser, seedSampleMachines } from "./lib/seed";
 
 const rawPort = process.env["PORT"];
@@ -17,6 +18,15 @@ if (Number.isNaN(port) || port <= 0) {
 }
 
 async function start() {
+  // Schema migrations are fatal on failure: serving requests against a wrong
+  // schema would only produce confusing downstream errors.
+  try {
+    await runMigrations();
+  } catch (err) {
+    logger.error({ err }, "Database migration failed — refusing to start");
+    process.exit(1);
+  }
+
   try {
     await seedAdminUser();
     await seedSampleMachines();
